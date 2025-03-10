@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,129 +7,83 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { UserInterviews } from "@/components/user-interviews"
 import { UserSettings } from "@/components/user-settings"
 import { Edit, Mail } from "lucide-react"
-
-interface UserProfile {
-  name: string
-  email: string
-  bio: string
-  urls: {
-    github: string
-    linkedin: string
-  }
-  createdAt?: string
-  interviewsCount?: number
-  likesCount?: number
-  commentsCount?: number
-}
+import { useEffect, useState } from "react"
+import axios from 'axios'
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+    const [user, setUser] = useState({ name: '', email: '', photoURL: '' });
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/users/profile', {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
+    // Fetch user data from backend using token
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error('No token found');
+            return;
         }
-      })
 
-      if (!response.ok) throw new Error('Failed to fetch profile')
-      const data = await response.json()
-      setProfile(data)
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleProfileUpdate = async (updatedProfile: UserProfile) => {
-    try {
-      const response = await fetch('http://localhost:5000/api/users/profile', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedProfile)
-      })
-
-      if (!response.ok) throw new Error('Failed to update profile')
-      const data = await response.json()
-      setProfile(data)
-    } catch (error) {
-      console.error('Error updating profile:', error)
-    }
-  }
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
-  }
-
-  if (!profile) {
-    return <div className="flex items-center justify-center min-h-screen">Please log in to view your profile</div>
-  }
-
-  const memberSince = profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-US', {
-    month: 'short',
-    year: 'numeric'
-  }) : 'N/A'
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile-data`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(response => setUser(response.data))
+        .catch(error => console.error('Error fetching profile data:', error));
+    }, []);
 
   return (
     <div className="container py-10">
-      <div className="grid gap-8 md:grid-cols-[250px_1fr]">
+      <div className="grid gap-8 md:grid-cols-2"> {/* Improved Grid */}
+
+        {/* Profile & Stats Side */}
         <div className="space-y-6">
-          <Card>
+          {/* Profile Card */}
+          <Card className="flex-1 w-full">
             <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src="/placeholder.svg?height=64&width=64" alt={profile.name} />
-                <AvatarFallback>{profile.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={user.photoURL} alt="User" />
+                <AvatarFallback>AJ</AvatarFallback>
               </Avatar>
-              <div className="space-y-1">
-                <CardTitle>{profile.name}</CardTitle>
-                <CardDescription className="flex items-center">
+              <div className="space-y-1 w-full overflow-hidden">
+                <CardTitle className="truncate">{user.name}</CardTitle>
+                <CardDescription className="flex items-center break-words">
                   <Mail className="mr-1 h-3 w-3" />
-                  {profile.email}
+                  {user.email}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" size="sm" onClick={() => document.querySelector('[value="settings"]')?.click()}>
+              <Button variant="outline" className="w-full" size="sm">
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Profile
               </Button>
             </CardContent>
           </Card>
-          <Card>
+
+          {/* Stats Card */}
+          <Card className="flex-1 w-full">
             <CardHeader>
               <CardTitle>Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Interviews Shared</span>
-                <span className="font-medium">{profile.interviewsCount || 0}</span>
+                <span className="font-medium">12</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Likes</span>
-                <span className="font-medium">{profile.likesCount || 0}</span>
+                <span className="font-medium">248</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Comments</span>
-                <span className="font-medium">{profile.commentsCount || 0}</span>
+                <span className="font-medium">86</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Member Since</span>
-                <span className="font-medium">{memberSince}</span>
+                <span className="font-medium">Jan 2023</span>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Tabs Side */}
         <div>
           <Tabs defaultValue="interviews">
             <TabsList className="mb-6">
@@ -141,7 +94,7 @@ export default function ProfilePage() {
               <UserInterviews />
             </TabsContent>
             <TabsContent value="settings">
-              <UserSettings onProfileUpdate={handleProfileUpdate} initialData={profile} />
+              <UserSettings />
             </TabsContent>
           </Tabs>
         </div>

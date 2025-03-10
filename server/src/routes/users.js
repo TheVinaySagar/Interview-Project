@@ -1,6 +1,7 @@
 import express from "express"
 import Interview from "../models/Interview.js"
 import User from "../models/User.js"
+import { auth } from "../config/firebase.js"
 
 const router = express.Router()
 
@@ -90,5 +91,14 @@ router.put("/profile", async (req, res) => {
         return res.status(500).json({ message: "Failed to update profile" })
     }
 })
+
+router.get('/profile-data', (req, res) => {
+    return res.status(200).json({
+        name: req.user.name,
+        email: req.user.email,
+        photoURL: req.user.picture
+    });
+});
+
 
 export default router

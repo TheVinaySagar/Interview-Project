@@ -2,8 +2,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useState } from "react"
-import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -20,11 +18,13 @@ const profileFormSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  bio: z.string().max(160).default(""),
-  urls: z.object({
-    github: z.string().url({ message: "Please enter a valid URL." }).default(""),
-    linkedin: z.string().url({ message: "Please enter a valid URL." }).default(""),
-  }),
+  bio: z.string().max(160).optional(),
+  urls: z
+    .object({
+      github: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+      linkedin: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
+    })
+    .optional(),
 })
 
 const notificationsFormSchema = z.object({
@@ -37,37 +37,16 @@ const notificationsFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 type NotificationsFormValues = z.infer<typeof notificationsFormSchema>
 
-interface UserProfile {
-  name: string
-  email: string
-  bio: string
-  urls: {
-    github: string
-    linkedin: string
-  }
-  createdAt?: string
-  interviewsCount?: number
-  likesCount?: number
-  commentsCount?: number
-}
-
-interface UserSettingsProps {
-  initialData?: UserProfile | null
-  onProfileUpdate?: (data: UserProfile) => void
-}
-
-export function UserSettings({ initialData, onProfileUpdate }: UserSettingsProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
+export function UserSettings() {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: initialData?.name || "",
-      email: initialData?.email || "",
-      bio: initialData?.bio || "",
+      name: "Alex Johnson",
+      email: "alex@example.com",
+      bio: "Software Engineer with 5 years of experience. Passionate about sharing interview experiences to help others succeed.",
       urls: {
-        github: initialData?.urls?.github || "",
-        linkedin: initialData?.urls?.linkedin || "",
+        github: "https://github.com/alexjohnson",
+        linkedin: "https://linkedin.com/in/alexjohnson",
       },
     },
   })
@@ -82,31 +61,12 @@ export function UserSettings({ initialData, onProfileUpdate }: UserSettingsProps
     },
   })
 
-  async function onProfileSubmit(data: ProfileFormValues) {
-    setIsSubmitting(true)
-    try {
-      const response = await fetch('http://localhost:5000/api/users/profile', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
+  function onProfileSubmit(data: ProfileFormValues) {
+    // In a real app, this would update the user's profile
 
-      if (!response.ok) {
-        throw new Error('Failed to update profile')
-      }
-
-      const updatedProfile = await response.json()
-      onProfileUpdate?.(updatedProfile)
-      toast.success('Profile updated successfully')
-    } catch (error) {
-      console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
-    } finally {
-      setIsSubmitting(false)
-    }
+    console.log("Form submitted!")
+    console.log("Profile data:", data)
+    alert("Profile form submitted!")
   }
 
   function onNotificationsSubmit(data: NotificationsFormValues) {
@@ -198,9 +158,7 @@ export function UserSettings({ initialData, onProfileUpdate }: UserSettingsProps
                   )}
                 />
               </div>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Updating...' : 'Update Profile'}
-              </Button>
+              <Button type="submit">Update Profile</Button>
             </form>
           </Form>
         </CardContent>

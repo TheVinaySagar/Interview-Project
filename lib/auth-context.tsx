@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         // Get the ID token
         const token = await firebaseUser.getIdToken()
-
+        localStorage.setItem('token', token);
         // Create or update user in MongoDB
         try {
           await axios.post(
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get the ID token
     const token = await userCredential.user.getIdToken()
-
+    localStorage.setItem('token', token);
     // Create user in MongoDB
     await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user`,
@@ -140,4 +140,3 @@ export function useAuth() {
   }
   return context
 }
-
