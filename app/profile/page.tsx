@@ -33,7 +33,7 @@ export default function ProfilePage() {
       <div className="grid gap-8 md:grid-cols-2"> {/* Improved Grid */}
 
         {/* Profile & Stats Side */}
-        <div className="space-y-6">
+        <div className="space-y-2">
           {/* Profile Card */}
           <Card className="flex-1 w-full">
             <CardHeader className="flex flex-row items-center gap-4 space-y-0">

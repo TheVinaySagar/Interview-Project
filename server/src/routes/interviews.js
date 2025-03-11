@@ -10,12 +10,32 @@ router.get("/", async (req, res) => {
     try {
         const interviews = await Interview.find({ status: "published" }).sort({ createdAt: -1 })
 
-        return res.status(200).json({ interviews })
+        return res.status(200).json(interviews)
     } catch (error) {
         console.error("Get interviews error:", error)
         return res.status(500).json({ message: "Failed to fetch interviews" })
     }
 })
+
+router.get("/user-interviews", async (req, res) => {
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Unauthorized" })
+    }
+
+    const token = authHeader.split("Bearer ")[1]
+    const decodedToken = await auth.verifyIdToken(token)
+
+    // Get user from Firebase
+    const userRecord = await auth.getUser(decodedToken.uid)
+
+    // Check if user exists in MongoDB
+    let user = await User.findOne({ uid: userRecord.uid })
+    const interviews = await Interview.find({ authorId: user.uid }).sort({ createdAt: -1 })
+
+    return res.status(200).json(interviews)
+})
+
 
 // Get interview by ID
 router.get("/:id", async (req, res) => {
@@ -37,6 +57,10 @@ router.get("/:id", async (req, res) => {
         return res.status(500).json({ message: "Failed to fetch interview" })
     }
 })
+
+
+
+
 
 // Create new interview
 router.post("/", async (req, res) => {

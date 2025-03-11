@@ -1,4 +1,4 @@
-import { AdminDashboard } from "@/components/admin-dashboard"
+  import { AdminDashboard } from "@/components/admin-dashboard"
 
 export default function AdminPage() {
   return (
@@ -13,4 +13,3 @@ export default function AdminPage() {
     </div>
   )
 }
-
