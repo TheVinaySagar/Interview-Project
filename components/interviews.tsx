@@ -209,7 +209,7 @@ export function Interviews() {
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             {interviews.map((interview: any) => (
-                <Link href={`/interviews/${interview.id}`} key={interview.id}>
+                <Link href={`/interviews/${interview._id}`} key={interview._id}>
                     <Card className="overflow-hidden hover:shadow-md transition-shadow">
                         <CardHeader className="p-4 pb-2">
                             <div className="flex justify-between items-start">

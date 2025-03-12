@@ -88,11 +88,16 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ message: "Missing required fields" })
         }
 
+        // Ensure `questions` is correctly structured
+        if (!Array.isArray(questions) || !questions.every(q => q.question && q.answer)) {
+            return res.status(400).json({ message: "Invalid questions format. Each question must have a 'question' and 'answer' field." })
+        }
+
         const newInterview = new Interview({
             company,
             role,
             level,
-            questions,
+            questions: questions.map(q => ({ question: q.question, answer: q.answer })),
             experience,
             tags,
             isAnonymous,
@@ -105,7 +110,10 @@ router.post("/", async (req, res) => {
         return res.status(201).json(newInterview)
     } catch (error) {
         console.error("Create interview error:", error)
-        return res.status(500).json({ message: "Failed to create interview" })
+
+        // Improved error response
+        const errorMessage = error.message || "Failed to create interview"
+        return res.status(500).json({ message: errorMessage })
     }
 })
 

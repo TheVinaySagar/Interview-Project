@@ -246,56 +246,69 @@ export function SubmitForm() {
               </div>
 
               <FormField
-                control={form.control}
-                name="questions"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Interview Questions</FormLabel>
-                    <FormDescription>Add the questions you were asked during the interview.</FormDescription>
-                    <div className="space-y-2">
-                      {form.watch("questions").map((_, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Input
-                            placeholder={`Question ${index + 1}`}
-                            value={form.watch(`questions.${index}`)}
-                            onChange={(e) => {
-                              const newQuestions = [...form.watch("questions")]
-                              newQuestions[index] = e.target.value
-                              form.setValue("questions", newQuestions)
-                            }}
-                          />
-                          {index > 0 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                const newQuestions = form.watch("questions").filter((_, i) => i !== index)
-                                form.setValue("questions", newQuestions)
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => {
-                          form.setValue("questions", [...form.watch("questions"), ""])
-                        }}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Question
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+  control={form.control}
+  name="questions"
+  render={() => (
+    <FormItem>
+      <FormLabel>Interview Questions</FormLabel>
+      <FormDescription>Add the questions and their answers.</FormDescription>
+
+      <div className="space-y-4">
+        {form.watch("questions").map((item, index) => (
+          <div key={index} className="space-y-2 border p-3 rounded-md">
+            <Input
+              placeholder={`Question ${index + 1}`}
+              value={item}
+              onChange={(e) => {
+                const newQuestions = [...form.watch("questions")];
+                newQuestions[index] = e.target.value;
+                form.setValue("questions", newQuestions);
+              }}
+            />
+            <Textarea
+              placeholder="Your answer..."
+              value={item.question}
+              onChange={(e) => {
+                const newQuestions = [...form.watch("questions")];
+                newQuestions[index] = e.target.value;
+                form.setValue("questions", newQuestions);
+              }}
+            />
+            {index > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  const newQuestions = form.watch("questions").filter((_, i) => i !== index);
+                  form.setValue("questions", newQuestions);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-2"
+          onClick={() => {
+            const questions = form.watch("questions");
+            form.setValue("questions", [...questions, { question: "", answer: "" }]);
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add Question
+        </Button>
+      </div>
+
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
 
               <FormField
                 control={form.control}
@@ -427,4 +440,3 @@ export function SubmitForm() {
     </Form>
   )
 }
-
