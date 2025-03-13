@@ -71,12 +71,12 @@ export function UserButton() {
           <DropdownMenuItem asChild>
             <Link href="/profile">Profile</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
+          {/* <DropdownMenuItem asChild>
             <Link href="/profile/interviews">My Interviews</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/profile/settings">Settings</Link>
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
@@ -87,4 +87,3 @@ export function UserButton() {
     </DropdownMenu>
   )
 }
-

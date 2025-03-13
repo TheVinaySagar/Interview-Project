@@ -1,24 +1,33 @@
+import Image from "next/image";
+
 export function CompanyLogos() {
   const companies = [
-    { name: "Google", logo: "G" },
-    { name: "Amazon", logo: "A" },
-    { name: "Microsoft", logo: "M" },
-    { name: "Apple", logo: "A" },
-    { name: "Meta", logo: "M" },
-    { name: "Netflix", logo: "N" },
-  ]
+    { name: "Google", logo: "/logos/google.png" },
+    { name: "Amazon", logo: "/logos/amazon.png" },
+    { name: "Microsoft", logo: "/logos/microsoft.png" },
+    { name: "Apple", logo: "/logos/apple.png" },
+    { name: "Meta", logo: "/logos/meta.png" },
+    { name: "Netflix", logo: "/logos/netflix.png" },
+  ];
 
   return (
-    <div className="flex flex-wrap justify-center gap-4 md:gap-8 py-8">
+    <div className="flex flex-wrap justify-center gap-6 md:gap-10 py-8">
       {companies.map((company) => (
         <div
           key={company.name}
-          className="flex h-16 w-32 items-center justify-center rounded-md border bg-background p-4"
+          className="flex h-24 w-40 items-center justify-center rounded-lg border bg-background p-4 shadow-md"
         >
-          <span className="text-2xl font-bold">{company.logo}</span>
+          <div className="relative w-[100px] h-[50px] md:w-[120px] md:h-[60px]">
+            <Image
+              src={company.logo}
+              alt={`${company.name} Logo`}
+              layout="fill" // ✅ Ensures image fills container
+              objectFit="contain" // ✅ Avoids stretching
+              className="max-w-full max-h-full"
+            />
+          </div>
         </div>
       ))}
     </div>
-  )
+  );
 }
-
