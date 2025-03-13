@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -11,9 +12,11 @@ export function MainNav() {
   const pathname = usePathname()
 
   return (
-    <div className="mr-4 flex">
+    <div className="mr-2 flex items-center space-x-6 backdrop-blur-md p-2.5 rounded-lg shadow-md">
       <Link href="/" className="mr-6 flex items-center space-x-2">
-        <span className="hidden font-bold sm:inline-block">Interview Experience</span>
+        {/* Logo Image */}
+        <Image src="/logo.png" alt="Interview Experience Logo" width={150} height={40} />
+        {/* <span className="hidden font-bold text-lg text-gray-800 sm:inline-block">Interview Experience</span> */}
       </Link>
       <nav className="flex items-center gap-6 text-sm">
         <Link
@@ -60,4 +63,3 @@ export function MainNav() {
     </div>
   )
 }
-

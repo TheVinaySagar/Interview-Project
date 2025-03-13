@@ -1,6 +1,6 @@
 import express from "express"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-
+import { marked } from "marked"
 const router = express.Router()
 
 // Initialize Gemini API
@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
     }
 
     // Get the model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
     // Create a chat session
     const chat = model.startChat({
@@ -39,6 +39,7 @@ router.post("/", async (req, res) => {
     // Send message and get response
     const result = await chat.sendMessage(message)
     const response = result.response.text()
+    // const parsedresponse = marked(response)
 
     return res.status(200).json({ response })
   } catch (error) {

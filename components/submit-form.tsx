@@ -48,7 +48,12 @@ const formSchema = z.object({
   otherCompany: z.string().optional(),
   role: z.string().min(1, "Please enter the job role"),
   level: z.string().min(1, "Please select an experience level"),
-  questions: z.array(z.string()).min(1, "Please add at least one question"),
+  questions: z.array(
+    z.object({
+      question: z.string().min(1, "Question is required"),
+      answer: z.string().min(1, "Answer is required")
+    })
+  ).min(1, "Please add at least one question"),
   experience: z.string().min(50, "Please provide a detailed experience (minimum 50 characters)"),
   tags: z.array(z.string()).min(1, "Please select at least one tag"),
   isAnonymous: z.boolean().default(false),
@@ -66,7 +71,7 @@ export function SubmitForm() {
       otherCompany: "",
       role: "",
       level: "",
-      questions: [""],
+      questions: [{ question: "", answer: "" }],
       experience: "",
       tags: [],
       isAnonymous: false,
@@ -112,6 +117,7 @@ export function SubmitForm() {
 
   const watchCompany = form.watch("company")
   const watchTags = form.watch("tags")
+  const watchQuestions = form.watch("questions")
 
   return (
     <Form {...form}>
@@ -246,68 +252,74 @@ export function SubmitForm() {
               </div>
 
               <FormField
-  control={form.control}
-  name="questions"
-  render={() => (
-    <FormItem>
-      <FormLabel>Interview Questions</FormLabel>
-      <FormDescription>Add the questions and their answers.</FormDescription>
+                control={form.control}
+                name="questions"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Interview Questions</FormLabel>
+                    <FormDescription>Add the questions and their answers.</FormDescription>
 
-      <div className="space-y-4">
-        {form.watch("questions").map((item, index) => (
-          <div key={index} className="space-y-2 border p-3 rounded-md">
-            <Input
-              placeholder={`Question ${index + 1}`}
-              value={item}
-              onChange={(e) => {
-                const newQuestions = [...form.watch("questions")];
-                newQuestions[index] = e.target.value;
-                form.setValue("questions", newQuestions);
-              }}
-            />
-            <Textarea
-              placeholder="Your answer..."
-              value={item.question}
-              onChange={(e) => {
-                const newQuestions = [...form.watch("questions")];
-                newQuestions[index] = e.target.value;
-                form.setValue("questions", newQuestions);
-              }}
-            />
-            {index > 0 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  const newQuestions = form.watch("questions").filter((_, i) => i !== index);
-                  form.setValue("questions", newQuestions);
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="mt-2"
-          onClick={() => {
-            const questions = form.watch("questions");
-            form.setValue("questions", [...questions, { question: "", answer: "" }]);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Question
-        </Button>
-      </div>
+                    <div className="space-y-4">
+                      {watchQuestions.map((item, index) => (
+                        <div key={index} className="space-y-2 border p-3 rounded-md">
+                          <Input
+                            placeholder={`Question ${index + 1}`}
+                            value={item.question}
+                            onChange={(e) => {
+                              const newQuestions = [...watchQuestions];
+                              newQuestions[index] = {
+                                ...newQuestions[index],
+                                question: e.target.value
+                              };
+                              form.setValue("questions", newQuestions);
+                            }}
+                          />
+                          <Textarea
+                            placeholder="Your answer..."
+                            value={item.answer}
+                            onChange={(e) => {
+                              const newQuestions = [...watchQuestions];
+                              newQuestions[index] = {
+                                ...newQuestions[index],
+                                answer: e.target.value
+                              };
+                              form.setValue("questions", newQuestions);
+                            }}
+                          />
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const newQuestions = watchQuestions.filter((_, i) => i !== index);
+                                form.setValue("questions", newQuestions);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          const questions = watchQuestions;
+                          form.setValue("questions", [...questions, { question: "", answer: "" }]);
+                        }}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Question
+                      </Button>
+                    </div>
 
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
 
               <FormField
@@ -440,3 +452,81 @@ export function SubmitForm() {
     </Form>
   )
 }
+
+
+// "use client";
+
+// import * as React from "react";
+// import { useRouter } from "next/navigation";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import { useForm } from "react-hook-form";
+// import { z } from "zod";
+// import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
+// import { toast } from "sonner";
+// import axios from "axios";
+
+// import { cn } from "@/lib/utils";
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent } from "@/components/ui/card";
+// import { Checkbox } from "@/components/ui/checkbox";
+// import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+// import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+// import { Input } from "@/components/ui/input";
+// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// import { Textarea } from "@/components/ui/textarea";
+// import { Badge } from "@/components/ui/badge";
+// import { useAuth } from "@/lib/auth-context";
+
+// const companies = [
+//   { label: "Google", value: "google" },
+//   { label: "Amazon", value: "amazon" },
+//   { label: "Microsoft", value: "microsoft" },
+//   { label: "Apple", value: "apple" },
+//   { label: "Meta", value: "meta" },
+//   { label: "Netflix", value: "netflix" },
+// ];
+
+// const tagsList = [
+//   "DSA",
+//   "System Design",
+//   "Behavioral",
+//   "SQL",
+//   "ML",
+//   "JavaScript",
+//   "React",
+//   "Java",
+//   "Python",
+// ];
+
+// const formSchema = z.object({
+//   company: z.string().min(1, "Please select a company"),
+//   otherCompany: z.string().optional(),
+//   role: z.string().min(1, "Please enter the job role"),
+//   level: z.string().min(1, "Please select an experience level"),
+//   questions: z.array(z.object({ question: z.string(), answer: z.string() })).min(1, "Please add at least one question"),
+//   experience: z.string().min(50, "Please provide a detailed experience (minimum 50 characters)"),
+//   tags: z.array(z.string()).min(1, "Please select at least one tag"),
+//   isAnonymous: z.boolean().default(false),
+// });
+
+
+
+// export function SubmitForm() {
+//   const router = useRouter();
+//   const { user } = useAuth();
+//   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+//   const form = useForm<z.infer<typeof formSchema>>({
+//     resolver: zodResolver(formSchema),
+//     defaultValues: {
+//       company: "",
+//       otherCompany: "",
+//       role: "",
+//       level: "",
+//       questions: [{ question: "", answer: "" }],
+//       experience: "",
+//       tags: [],
+//       isAnonymous: false,
+//     },
+//   });

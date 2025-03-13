@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
+import { useRouter } from "next/navigation"
 
 const companies = [
   { label: "Google", value: "google" },
@@ -48,17 +49,47 @@ const tags = [
   { label: "Python", value: "python" },
 ]
 
+
+import { useState, useEffect } from "react";
+
+
+
 export function InterviewFilters() {
-  const [openCompany, setOpenCompany] = React.useState(false)
-  const [company, setCompany] = React.useState("")
-  const [openRole, setOpenRole] = React.useState(false)
-  const [role, setRole] = React.useState("")
-  const [level, setLevel] = React.useState("")
-  const [selectedTags, setSelectedTags] = React.useState<string[]>([])
+  const router = useRouter();
+  const [openCompany, setOpenCompany] = useState(false);
+  const [company, setCompany] = useState("");
+  const [openRole, setOpenRole] = useState(false);
+  const [role, setRole] = useState("");
+  const [level, setLevel] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const handleTagChange = (tag: string) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
-  }
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const applyFilters = () => {
+    const queryParams = new URLSearchParams();
+
+    if (company.trim()) queryParams.append("company", company);
+    if (role.trim()) queryParams.append("role", role);
+    if (level.trim()) queryParams.append("level", level);
+    if (selectedTags.length > 0) queryParams.append("tags", selectedTags.join(","));
+
+    router.push(`/interviews?${queryParams.toString()}`, { scroll: false }); // ✅ URL Update
+  };
+
+
+  const resetFilters = () => {
+    setCompany("");
+    setRole("");
+    setLevel("");
+    setSelectedTags([]);
+
+    // ✅ URL se filters hatao
+    router.push("/interviews", { scroll: false });
+  };
 
   return (
     <div className="space-y-6">
@@ -172,11 +203,10 @@ export function InterviewFilters() {
         </Accordion>
       </div>
 
-      <Button className="w-full">Apply Filters</Button>
-      <Button variant="outline" className="w-full">
+      <Button className="w-full" onClick={applyFilters}>Apply Filters</Button>
+      <Button variant="outline" className="w-full" onClick={resetFilters}>
         Reset
       </Button>
     </div>
   )
 }
-
