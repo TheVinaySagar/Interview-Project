@@ -46,7 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         // Get the ID token
         const token = await firebaseUser.getIdToken()
-        localStorage.setItem('token', token);
+        const expiresIn = 2 * 60 * 60 * 1000;
+        const expiryTime = Date.now() + expiresIn;
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("tokenExpiry", expiryTime.toString());
+
         // Create or update user in MongoDB
         try {
           await axios.post(
