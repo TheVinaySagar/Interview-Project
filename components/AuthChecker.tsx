@@ -3,7 +3,7 @@
 import useAuthCheck from "@/hooks/useAuthCheck";
 
 export default function AuthChecker() {
-  useAuthCheck(); // ✅ Run token validation on the client
+  useAuthCheck();
 
-  return null; // ✅ No UI, just a logic wrapper
+  return null;
 }

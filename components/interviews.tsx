@@ -198,7 +198,7 @@ export function Interviews() {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`)
       .then(response => {
-        // console.log('API Response:', response.data);  // 👀 Check this
+        console.log('API Response:', response.data);  // 👀 Check this
         setInterviews(response.data);
       })
       .catch(() => setError("Failed to fetch interviews. Please try again."))
@@ -237,7 +237,7 @@ export function Interviews() {
                 <div>
                   <CardTitle className="text-xl">{interview.company}</CardTitle>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {interview.role} • {interview.level}
+                    {interview.role}
                   </div>
                 </div>
                 <Badge variant="outline" className="ml-2">
@@ -257,7 +257,7 @@ export function Interviews() {
             <CardFooter className="p-4 pt-0 flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={interview.author?.avatar} alt={interview.author?.name} />
+                  <AvatarImage src={interview.authorAvatar} alt={interview.author?.name} />
                   <AvatarFallback>{interview.author?.initials || "NA"}</AvatarFallback>
                 </Avatar>
                 <div className="text-sm">

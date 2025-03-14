@@ -11,22 +11,22 @@ import { useEffect, useState } from "react"
 import axios from 'axios'
 
 export default function ProfilePage() {
-    const [user, setUser] = useState({ name: '', email: '', photoURL: '' });
+  const [user, setUser] = useState({ name: '', email: '', photoURL: '' });
 
-    // Fetch user data from backend using token
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.error('No token found');
-            return;
-        }
+  // Fetch user data from backend using token
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.error('No token found');
+      return;
+    }
 
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile-data`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => setUser(response.data))
-        .catch(error => console.error('Error fetching profile data:', error));
-    }, []);
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile-data`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(response => setUser(response.data))
+      .catch(error => console.error('Error fetching profile data:', error));
+  }, []);
 
   return (
     <div className="container py-10">

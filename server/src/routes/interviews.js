@@ -4,26 +4,42 @@ import Interview from "../models/Interview.js"
 import User from "../models/User.js"
 
 const router = express.Router()
-
-// Get all interviews
 router.get("/", async (req, res) => {
   try {
     const { company, role, level, tags } = req.query;
 
-    let filter = { status: "published" }; // ✅ Ensure only published interviews are fetched
+    let filter = { status: "published" };
 
-    if (company) filter.company = new RegExp(company, "i"); // ✅ Case-insensitive search
+    if (company) filter.company = new RegExp(company, "i");
     if (role) filter.role = new RegExp(role, "i");
     if (level) filter.level = new RegExp(level, "i");
-    if (tags) filter.tags = { $in: tags.split(",") }; // ✅ Match any tag instead of all
+    if (tags) filter.tags = { $in: tags.split(",") };
 
-    const interviews = await Interview.find(filter).sort({ createdAt: -1 });
+    let interviews = await Interview.find(filter)
+      .select("company role level tags authorId createdAt likes views authorName") // ✅ Fetch only required fields
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const authorIds = interviews.map((interview) => interview.authorId);
+    const users = await User.find({ uid: { $in: authorIds } }, { uid: 1, photoURL: 1 }).lean();
+
+    const userAvatarMap = {};
+    users.forEach((user) => {
+      userAvatarMap[user.uid] = user.photoURL;
+    });
+
+    interviews = interviews.map((interview) => ({
+      ...interview,
+      authorAvatar: userAvatarMap[interview.authorId]
+    }));
+
     res.status(200).json(interviews);
   } catch (error) {
     console.error("Error fetching interviews:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 router.get("/user-interviews", async (req, res) => {
   const authHeader = req.headers.authorization
@@ -43,28 +59,32 @@ router.get("/user-interviews", async (req, res) => {
 
   return res.status(200).json(interviews)
 })
-
-
 // Get interview by ID
 router.get("/:id", async (req, res) => {
   try {
-    const { id } = req.params
-    const interview = await Interview.findById(id)
+    const { id } = req.params;
+    let interview = await Interview.findById(id).lean(); // ✅ Convert to plain JS object
 
     if (!interview) {
-      return res.status(404).json({ message: "Interview not found" })
+      return res.status(404).json({ message: "Interview not found" });
     }
 
-    // Increment view count
-    interview.views += 1
-    await interview.save()
+    // ✅ Fetch user avatar using authorId
+    const user = await User.findOne({ uid: interview.authorId }, { photoURL: 1 }).lean();
+    const authorAvatar = user?.photoURL || "https://cdn.example.com/default-avatar.png";
 
-    return res.status(200).json(interview)
+    // ✅ Add `authorAvatar` key in response
+    interview = { ...interview, authorAvatar };
+
+    // ✅ Increment view count
+    await Interview.findByIdAndUpdate(id, { $inc: { views: 1 } });
+
+    return res.status(200).json(interview);
   } catch (error) {
-    console.error("Get interview error:", error)
-    return res.status(500).json({ message: "Failed to fetch interview" })
+    console.error("Get interview error:", error);
+    return res.status(500).json({ message: "Failed to fetch interview" });
   }
-})
+});
 
 // Create new interview
 router.post("/", async (req, res) => {
@@ -120,6 +140,41 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ message: errorMessage })
   }
 })
+
+router.post("/:id/like", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+    const decodedToken = await auth.verifyIdToken(token);
+    const userId = decodedToken.uid;
+
+    const { id } = req.params;
+    const interview = await Interview.findById(id);
+
+    if (!interview) {
+      return res.status(404).json({ message: "Interview not found" });
+    }
+
+    if (interview.likedBy.includes(userId)) {
+
+      interview.likes -= 1;
+      interview.likedBy = interview.likedBy.filter((uid) => uid !== userId);
+    } else {
+      interview.likes += 1;
+      interview.likedBy.push(userId);
+    }
+
+    await interview.save();
+    return res.status(200).json({ message: "Like updated", likes: interview.likes });
+  } catch (error) {
+    console.error("Like error:", error);
+    return res.status(500).json({ message: "Failed to update like" });
+  }
+});
 
 // Update interview
 router.put("/:id", async (req, res) => {

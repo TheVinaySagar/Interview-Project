@@ -113,7 +113,7 @@ export function UserInterviews() {
   const [error, setError] = useState('');       // Error state
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       console.error('No token found');
       setError("No token found. Please log in again.");

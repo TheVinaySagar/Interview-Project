@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get the ID token
     const token = await userCredential.user.getIdToken()
-    localStorage.setItem('token', token);
+    localStorage.setItem('authToken', token);
     // Create user in MongoDB
     await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user`,

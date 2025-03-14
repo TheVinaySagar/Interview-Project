@@ -10,6 +10,8 @@ import { AuthProvider } from "@/lib/auth-context"
 import { Toaster } from "sonner"
 import AuthChecker from "@/components/AuthChecker";
 
+import { Footer } from "@/components/footer"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -41,13 +43,14 @@ export default function RootLayout({
                 </div>
               </header>
               <main className="flex-1">{children}</main>
-              <footer className="border-t py-6 md:py-0">
+              {/* <footer className="border-t py-6 md:py-0">
                 <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
                   <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
                     Built with ❤️ for the tech community. © {new Date().getFullYear()} Interview Experience Platform.
                   </p>
                 </div>
-              </footer>
+              </footer> */}
+              <Footer />
             </div>
             <Toaster
               position="bottom-right"
