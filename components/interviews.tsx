@@ -198,7 +198,7 @@ export function Interviews() {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`)
       .then(response => {
-        console.log('API Response:', response.data);  // 👀 Check this
+        // console.log('API Response:', response.data);  // 👀 Check this
         setInterviews(response.data);
       })
       .catch(() => setError("Failed to fetch interviews. Please try again."))
@@ -219,7 +219,7 @@ export function Interviews() {
     };
 
     fetchInterviews();
-  }, [searchParams]); // ✅ Jab bhi filters change honge, API call ho jayegi
+  }, [searchParams]);
 
 
 

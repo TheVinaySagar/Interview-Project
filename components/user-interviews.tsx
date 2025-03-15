@@ -114,6 +114,7 @@ export function UserInterviews() {
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
+    // console.log(token);
     if (!token) {
       console.error('No token found');
       setError("No token found. Please log in again.");
@@ -121,7 +122,7 @@ export function UserInterviews() {
       return;
     }
 
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`, {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews/user-interviews`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 

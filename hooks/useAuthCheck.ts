@@ -1,46 +1,89 @@
-// "use client"; // ✅ Ensure this runs only on the client
+// // "use client"; // ✅ Ensure this runs only on the client
+
+// // import { useEffect } from "react";
+// // import { useRouter, usePathname } from "next/navigation";
+// // import { getAuth, signOut } from "firebase/auth";
+
+// // const useAuthCheck = (): void => {
+// //   const router = useRouter(); // ✅ Hook ko component ke andar rakho
+// //   const pathname = usePathname(); // ✅ Current route check karo
+
+// //   const logoutUser = async () => {
+// //     const auth = getAuth();
+// //     await signOut(auth); // ✅ Firebase session clear karega
+
+// //     localStorage.removeItem("authToken");
+// //     localStorage.removeItem("tokenExpiry");
+
+// //     if (pathname !== "/login") {
+// //       router.push("/login"); // ✅ Redirect only if NOT already on login page
+// //     }
+// //   };
+
+// //   useEffect(() => {
+// //     if (pathname === "/login") return; // ✅ Already on login page, skip check
+
+// //     const token = localStorage.getItem("authToken");
+// //     const expiryTime = localStorage.getItem("tokenExpiry");
+
+// //     if (!token || !expiryTime || Date.now() > parseInt(expiryTime)) {
+// //       logoutUser();
+// //     }
+
+// //     const tokenExpiry = localStorage.getItem("tokenExpiry");
+// //     if (tokenExpiry) {
+// //       const timeLeft = parseInt(tokenExpiry) - Date.now();
+// //       if (timeLeft > 0) {
+// //         const timeout = setTimeout(logoutUser, timeLeft);
+// //         return () => clearTimeout(timeout);
+// //       } else {
+// //         logoutUser();
+// //       }
+// //     }
+// //   }, [pathname]); // ✅ Runs only when route changes
+// // };
+
+// // export default useAuthCheck;
+
+
+// "use client";
 
 // import { useEffect } from "react";
 // import { useRouter, usePathname } from "next/navigation";
-// import { getAuth, signOut } from "firebase/auth";
+// import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 // const useAuthCheck = (): void => {
-//   const router = useRouter(); // ✅ Hook ko component ke andar rakho
-//   const pathname = usePathname(); // ✅ Current route check karo
-
-//   const logoutUser = async () => {
-//     const auth = getAuth();
-//     await signOut(auth); // ✅ Firebase session clear karega
-
-//     localStorage.removeItem("authToken");
-//     localStorage.removeItem("tokenExpiry");
-
-//     if (pathname !== "/login") {
-//       router.push("/login"); // ✅ Redirect only if NOT already on login page
-//     }
-//   };
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const auth = getAuth();
 
 //   useEffect(() => {
-//     if (pathname === "/login") return; // ✅ Already on login page, skip check
+//     const protectedRoutes = ["/dashboard", "/profile", "/settings"]; // ✅ Protected pages
 
-//     const token = localStorage.getItem("authToken");
-//     const expiryTime = localStorage.getItem("tokenExpiry");
+//     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+//       const tokenExpiry = localStorage.getItem("tokenExpiry");
 
-//     if (!token || !expiryTime || Date.now() > parseInt(expiryTime)) {
-//       logoutUser();
-//     }
-
-//     const tokenExpiry = localStorage.getItem("tokenExpiry");
-//     if (tokenExpiry) {
-//       const timeLeft = parseInt(tokenExpiry) - Date.now();
-//       if (timeLeft > 0) {
-//         const timeout = setTimeout(logoutUser, timeLeft);
-//         return () => clearTimeout(timeout);
+//       if (!user || !tokenExpiry || Date.now() > parseInt(tokenExpiry)) {
+//         if (protectedRoutes.includes(pathname)) {
+//           await signOut(auth); // ✅ Firebase se logout
+//           localStorage.removeItem("authToken");
+//           localStorage.removeItem("tokenExpiry");
+//           router.push("/login"); // ✅ Redirect to login
+//         }
 //       } else {
-//         logoutUser();
+//         // ✅ Auto logout after token expiry
+//         const timeLeft = parseInt(tokenExpiry) - Date.now();
+//         setTimeout(async () => {
+//           await signOut(auth);
+//           localStorage.removeItem("authToken");
+//           localStorage.removeItem("tokenExpiry");
+//           router.push("/login");
+//         }, timeLeft);
 //       }
-//     }
-//   }, [pathname]); // ✅ Runs only when route changes
+//     });
+
+//     return () => unsubscribe();
+//   }, [pathname]);
 // };
 
 // export default useAuthCheck;
@@ -48,7 +91,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -56,34 +99,104 @@ const useAuthCheck = (): void => {
   const router = useRouter();
   const pathname = usePathname();
   const auth = getAuth();
+  const logoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to clear any existing logout timer
+  const clearLogoutTimer = () => {
+    if (logoutTimerRef.current) {
+      clearTimeout(logoutTimerRef.current);
+      logoutTimerRef.current = null;
+    }
+  };
+
+  // Function to perform logout
+  const performLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("tokenExpiry");
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Still clear local storage and redirect even if Firebase logout fails
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("tokenExpiry");
+      router.push("/login");
+    }
+  };
+
+  // Function to set up auto-logout timer
+  const setupAutoLogout = (expiryTime: number) => {
+    clearLogoutTimer();
+
+    const timeLeft = expiryTime - Date.now();
+
+    // Only set the timer if the token isn't already expired
+    if (timeLeft > 0) {
+      logoutTimerRef.current = setTimeout(() => {
+        performLogout();
+      }, timeLeft);
+    } else {
+      // Token is already expired, logout immediately
+      performLogout();
+    }
+  };
 
   useEffect(() => {
-    const protectedRoutes = ["/dashboard", "/profile", "/settings"]; // ✅ Protected pages
+    const protectedRoutes = ["/dashboard", "/profile", "/settings"];
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      const tokenExpiry = localStorage.getItem("tokenExpiry");
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const tokenExpiryStr = localStorage.getItem("tokenExpiry");
+      const tokenExpiry = tokenExpiryStr ? parseInt(tokenExpiryStr) : null;
 
-      if (!user || !tokenExpiry || Date.now() > parseInt(tokenExpiry)) {
-        if (protectedRoutes.includes(pathname)) {
-          await signOut(auth); // ✅ Firebase se logout
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("tokenExpiry");
-          router.push("/login"); // ✅ Redirect to login
+      // Clear any existing timer first
+      clearLogoutTimer();
+
+      if (!user || !tokenExpiry) {
+        // User is not logged in or token expiry is missing
+        if (protectedRoutes.some(route => pathname.startsWith(route))) {
+          performLogout();
         }
       } else {
-        // ✅ Auto logout after token expiry
-        const timeLeft = parseInt(tokenExpiry) - Date.now();
-        setTimeout(async () => {
-          await signOut(auth);
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("tokenExpiry");
-          router.push("/login");
-        }, timeLeft);
+        if (Date.now() > tokenExpiry) {
+          // Token has expired
+          performLogout();
+        } else {
+          // Token is still valid, set up auto-logout
+          setupAutoLogout(tokenExpiry);
+
+          // If the user is on a non-protected route but is logged in, no need to redirect
+        }
       }
     });
 
-    return () => unsubscribe();
-  }, [pathname]);
+    // Clean up the auth listener and timer when component unmounts
+    return () => {
+      unsubscribe();
+      clearLogoutTimer();
+    };
+  }, [pathname]); // Only re-run when pathname changes
+
+  // Additional effect to handle token refresh
+  useEffect(() => {
+    // Check token expiry every minute to handle potential refresh
+    const tokenCheckInterval = setInterval(() => {
+      const tokenExpiryStr = localStorage.getItem("tokenExpiry");
+      const tokenExpiry = tokenExpiryStr ? parseInt(tokenExpiryStr) : null;
+
+      if (tokenExpiry) {
+        const timeLeft = tokenExpiry - Date.now();
+        // If token will expire in less than 5 minutes, we could refresh it here
+        if (timeLeft > 0 && timeLeft < 5 * 60 * 1000) {
+          // Implement token refresh logic here if you have refresh tokens
+          // For now, we'll just update the auto-logout timer
+          setupAutoLogout(tokenExpiry);
+        }
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(tokenCheckInterval);
+  }, []);
 };
 
 export default useAuthCheck;
