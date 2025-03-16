@@ -21,10 +21,11 @@ export function CompanyLogos() {
             <Image
               src={company.logo}
               alt={`${company.name} Logo`}
-              layout="fill" // ✅ Ensures image fills container
-              objectFit="contain" // ✅ Avoids stretching
+              fill
+              style={{ objectFit: "contain" }}
               className="max-w-full max-h-full"
             />
+
           </div>
         </div>
       ))}

@@ -158,7 +158,6 @@ router.delete('/:commentId', authMiddleware, async (req, res) => {
 
     // Find the comment
     const comment = await Comment.findById(commentId);
-
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
@@ -170,14 +169,20 @@ router.delete('/:commentId', authMiddleware, async (req, res) => {
 
     // Soft delete the comment
     comment.isDeleted = true;
-    await Interview.findByIdAndUpdate(interviewId, { $decr: { comments: 1 } });
     await comment.save();
+
+    // Ensure interviewId exists (assuming comment has an interview reference)
+    if (comment.interviewId) {
+      await Interview.findByIdAndUpdate(comment.interviewId, { $inc: { comments: -1 } });
+    }
+
     return res.json({ message: "Comment deleted successfully" });
   } catch (error) {
-    console.error('Error deleting comment:', error);
+    console.error("Error deleting comment:", error);
     return res.status(500).json({ message: "Failed to delete comment" });
   }
 });
+
 
 // Like a comment
 router.post('/:commentId/like', authMiddleware, async (req, res) => {
