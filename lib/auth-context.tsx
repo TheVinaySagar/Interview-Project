@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Create or update user in MongoDB
         try {
           await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user`,
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/user`,
             {},
             {
               headers: {
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('authToken', token);
     // Create user in MongoDB
     await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user`,
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/user`,
       {
         name,
       },

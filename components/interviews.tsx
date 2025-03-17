@@ -19,9 +19,8 @@ export function Interviews() {
 
   useEffect(() => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`)
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/interviews`)
       .then(response => {
-        // console.log('API Response:', response.data);  // 👀 Check this
         setInterviews(response.data);
       })
       .catch(() => setError("Failed to fetch interviews. Please try again."))
@@ -32,7 +31,7 @@ export function Interviews() {
     const fetchInterviews = async () => {
       try {
         const queryParams = searchParams.toString(); // ✅ URL query params le rahe hain
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews?${queryParams}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/interviews?${queryParams}`);
         setInterviews(response.data);
       } catch (err) {
         setError("Failed to fetch interviews. Please try again.");

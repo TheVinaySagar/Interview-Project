@@ -21,7 +21,7 @@ export default function ProfilePage() {
       return;
     }
 
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile-data`, {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile-data`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(response => setUser(response.data))

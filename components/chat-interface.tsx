@@ -76,7 +76,7 @@ export function ChatInterface() {
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/chat`,
+        `${process.env.NEXT_PUBLIC_API_URL}/chat`,
         { message: input },
         {
           headers: {

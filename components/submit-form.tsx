@@ -99,7 +99,7 @@ export function SubmitForm() {
       }
 
       // Submit to API
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`, interviewData, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/interviews`, interviewData, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },

@@ -29,7 +29,7 @@ export default function LikeButton({ interviewId, initialLikes, userLiked }: { i
 
     try {
       const token = await user.getIdToken(); // ✅ Get Firebase token from logged-in user
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews/${interviewId}/like`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/interviews/${interviewId}/like`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
