@@ -50,6 +50,7 @@
         "express": "latest",
         "firebase": "latest",
         "firebase-admin": "latest",
+        "framer-motion": "^12.5.0",
         "helmet": "latest",
         "input-otp": "1.4.1",
         "lucide-react": "^0.454.0",

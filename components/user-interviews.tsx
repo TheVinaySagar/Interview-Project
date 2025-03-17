@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,15 +9,33 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Calendar, Edit, MoreHorizontal, Trash } from "lucide-react"
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export function UserInterviews() {
   const [interviews, setInterviews] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState('');       // Error state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [deleteInterviewId, setDeleteInterviewId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
+  // Fetch interviews on component mount
   useEffect(() => {
+    fetchInterviews();
+  }, []);
+
+  const fetchInterviews = async () => {
     const token = localStorage.getItem('authToken');
-    // console.log(token);
     if (!token) {
       console.error('No token found');
       setError("No token found. Please log in again.");
@@ -24,14 +43,64 @@ export function UserInterviews() {
       return;
     }
 
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/interviews/user-interviews`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/interviews/user-interviews`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setInterviews(response.data);
+    } catch (err) {
+      setError('Failed to fetch interviews. Please try again.');
+      console.error('Error fetching interviews:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      .then(response => setInterviews(response.data))
-      .catch(() => setError('Failed to fetch interviews. Please try again.'))
-      .finally(() => setLoading(false));
-  }, []);
+  // Handle edit button click
+  const handleEdit = (interviewId: string) => {
+    router.push(`/edit-interview/${interviewId}`);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteRequest = (interviewId: string) => {
+    setDeleteInterviewId(interviewId);
+  };
+
+  // Handle actual deletion
+  const handleDeleteConfirm = async () => {
+    if (!deleteInterviewId) return;
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      toast.error("Authentication required. Please log in again.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/interviews/${deleteInterviewId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update local state to remove deleted interview
+      setInterviews(interviews.filter((interview: any) => interview._id !== deleteInterviewId));
+      toast.success("Interview experience deleted successfully");
+    } catch (err) {
+      console.error('Error deleting interview:', err);
+      toast.error("Failed to delete interview. Please try again.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteInterviewId(null); // Close the dialog
+    }
+  };
+
+  // Cancel delete action
+  const handleDeleteCancel = () => {
+    setDeleteInterviewId(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -61,7 +130,7 @@ export function UserInterviews() {
               role: string;
               level: string;
               status: string;
-              date: string;
+              createdAt: string;
               views?: number;
               likes?: number;
               comments?: number;
@@ -86,11 +155,14 @@ export function UserInterviews() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(interview._id)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteRequest(interview._id)}
+                          className="text-destructive"
+                        >
                           <Trash className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -102,7 +174,7 @@ export function UserInterviews() {
                 <CardContent>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="mr-1 h-3 w-3" />
-                    <span>Posted on {interview.date}</span>
+                    <span>Posted on {new Date(interview.createdAt).toLocaleDateString()}</span>
                   </div>
                 </CardContent>
 
@@ -110,7 +182,7 @@ export function UserInterviews() {
                   <div className="text-sm text-muted-foreground">
                     {interview.status === "published" ? (
                       <>
-                        {interview.views} views • {interview.likes} likes • {interview.comments} comments
+                        {interview.views || 0} views • {interview.likes || 0} likes • {interview.comments || 0} comments
                       </>
                     ) : (
                       "Not published yet"
@@ -129,6 +201,28 @@ export function UserInterviews() {
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteInterviewId !== null} onOpenChange={(open) => !open && handleDeleteCancel()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this interview?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your interview experience.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

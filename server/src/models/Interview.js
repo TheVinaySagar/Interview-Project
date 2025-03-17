@@ -24,6 +24,10 @@ const interviewSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  tips: {
+    type: String,
+    required: false,
+  },
   tags: {
     type: [String],
     required: true,

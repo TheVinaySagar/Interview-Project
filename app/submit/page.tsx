@@ -1,4 +1,4 @@
-import { SubmitForm } from "@/components/submit-form"
+import SubmitInterview from "@/components/submit-form"
 
 export default function SubmitPage() {
   return (
@@ -11,9 +11,8 @@ export default function SubmitPage() {
             someone else's success.
           </p>
         </div>
-        <SubmitForm />
+        <SubmitInterview />
       </div>
     </div>
   )
 }
-
