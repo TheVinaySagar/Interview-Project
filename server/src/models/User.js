@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema({
   photoURL: {
     type: String,
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+  adminKey: {
+    type: String,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -29,4 +37,3 @@ const userSchema = new mongoose.Schema({
 })
 
 export default mongoose.model("User", userSchema)
-

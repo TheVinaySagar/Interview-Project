@@ -45,6 +45,8 @@ export function ChatInterface() {
     }
   }, [messages]);
 
+  // console.log("user", user);
+
   React.useEffect(() => {
     // Redirect if the user is not logged in
     if (!user) {

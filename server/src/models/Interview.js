@@ -46,9 +46,16 @@ const interviewSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["draft", "published", "flagged"],
-    default: "published",
+    enum: ["draft", "pending", "published", "rejected", "flagged"],
+    default: "pending",
   },
+  flags: [
+    {
+      reason: { type: String, required: true },
+      reportedBy: { type: String, required: true },
+      date: { type: Date, default: Date.now },
+    }
+  ],
   likes: {
     type: Number,
     default: 0,

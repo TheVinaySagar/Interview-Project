@@ -22,6 +22,8 @@ interface User {
   displayName: string | null
   photoURL: string | null
   token?: string
+  isAdmin: boolean
+  adminKey?: string
 }
 
 interface AuthContextType {
@@ -51,9 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("authToken", token);
         localStorage.setItem("tokenExpiry", expiryTime.toString());
 
-        // Create or update user in MongoDB
+        // Create or update user in MongoDB and get user data including admin status
         try {
-          await axios.post(
+          const response = await axios.post(
             `${process.env.NEXT_PUBLIC_API_URL}/auth/user`,
             {},
             {
@@ -61,18 +63,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 Authorization: `Bearer ${token}`,
               },
             },
-          )
-        } catch (error) {
-          console.error("Error syncing user with database:", error)
-        }
+          );
 
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          token,
-        })
+          // Extract user data from API response
+          const userData = response.data.user;
+
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            token,
+            isAdmin: userData.isAdmin || false,
+            adminKey: userData.adminKey,
+          });
+        } catch (error) {
+          console.error("Error syncing user with database:", error);
+          // Fallback to basic user info without admin status
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            token,
+            isAdmin: false,
+          });
+        }
       } else {
         setUser(null)
       }
@@ -89,27 +105,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get the ID token
     const token = await userCredential.user.getIdToken()
     localStorage.setItem('authToken', token);
-    // Create user in MongoDB
-    await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/user`,
-      {
-        name,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    )
 
-    // Update the user state with the display name and token
-    setUser({
-      uid: userCredential.user.uid,
-      email: userCredential.user.email,
-      displayName: name,
-      photoURL: userCredential.user.photoURL,
-      token,
-    })
+    // Create user in MongoDB and get user data
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/user`,
+        {
+          name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const userData = response.data.user;
+
+      // Update the user state with data from MongoDB
+      setUser({
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: name,
+        photoURL: userCredential.user.photoURL,
+        token,
+        isAdmin: userData.isAdmin || false,
+        adminKey: userData.adminKey,
+      });
+    } catch (error) {
+      console.error("Error creating user in database:", error);
+      // Fallback if API call fails
+      setUser({
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: name,
+        photoURL: userCredential.user.photoURL,
+        token,
+        isAdmin: false,
+      });
+    }
   }
 
   const signIn = async (email: string, password: string) => {
@@ -127,6 +161,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("tokenExpiry");
     await firebaseSignOut(auth)
   }
 

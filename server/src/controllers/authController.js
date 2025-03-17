@@ -58,6 +58,49 @@ class authController {
     }
   }
 
+  static async admin_verify(req, res) {
+    try {
+      // Extract token from Authorization header
+      const authHeader = req.headers.authorization
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Unauthorized" })
+      }
+
+      const token = authHeader.split("Bearer ")[1]
+
+      // Verify token with Firebase
+      const decodedToken = await auth.verifyIdToken(token)
+
+      // Check if user exists in our database
+      const user = await User.findOne({ uid: decodedToken.uid })
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+
+      // Check if user has admin role
+      console.log(user)
+      if (user.isAdmin === 0) {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." })
+      }
+
+      // If user is admin, return success
+      return res.status(200).json({
+        message: "Admin verification successful",
+        isAdmin: true,
+        user: {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          role: user.role
+        }
+      })
+    } catch (error) {
+      console.error("Admin verification error:", error)
+      return res.status(401).json({ message: "Invalid or expired token" })
+    }
+  }
+
   static async user_get(req, res) {
     try {
       const { uid } = req.params

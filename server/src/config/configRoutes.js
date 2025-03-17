@@ -7,6 +7,7 @@ const configRoutes = (app) => {
   if (allRoutes.userRoutes) app.use("/api/users", allRoutes.userRoutes);
   if (allRoutes.chatRoutes) app.use("/api/chat", allRoutes.chatRoutes);
   if (allRoutes.commentsRoutes) app.use("/api/comments", allRoutes.commentsRoutes);
+  if (allRoutes.adminRoutes) app.use("/api/admin", allRoutes.adminRoutes);
 }
 
 export default configRoutes;
