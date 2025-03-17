@@ -4,6 +4,66 @@ import { auth } from "../config/firebase.js"
 
 class InterviewsController {
 
+  static async getTrendingInterviews(req, res) {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      let trendingInterviews = await Interview.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: thirtyDaysAgo }
+          }
+        },
+        {
+          $addFields: {
+            trendingScore: {
+              $add: [
+                { $multiply: ["$likes", 2] }, // Likes have more weight
+                "$comments"
+              ]
+            }
+          }
+        },
+        {
+          $sort: { trendingScore: -1 }
+        },
+        {
+          $limit: 10
+        }
+      ]);
+
+      // Convert ObjectId to string for proper mapping
+      const authorIds = trendingInterviews.map((interview) => interview.authorId?.toString());
+
+
+      // Fetch user avatars
+      const users = await User.find(
+        { uid: { $in: authorIds } },
+        { uid: 1, photoURL: 1 }
+      ).lean();
+
+
+      // Create a map of user avatars
+      const userAvatarMap = {};
+      users.forEach((user) => {
+        userAvatarMap[user.uid.toString()] = user.photoURL;
+      });
+
+      // Attach avatar URLs to interviews
+      trendingInterviews = trendingInterviews.map((interview) => ({
+        ...interview,
+        authorAvatar: userAvatarMap[interview.authorId?.toString()] || null
+      }));
+
+      res.status(200).json(trendingInterviews);
+    } catch (error) {
+      console.error("Error fetching trending interviews:", error);
+      res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+  }
+
+
   static async getInterviews(req, res) {
     try {
       const { company, role, level, tags } = req.query;

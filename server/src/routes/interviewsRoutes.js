@@ -5,6 +5,7 @@ const InterviewsRoutes = Router();
 
 InterviewsRoutes.get('/', InterviewsController.getInterviews);
 InterviewsRoutes.get('/user-interviews', InterviewsController.userInterviews);
+InterviewsRoutes.get('/trending', InterviewsController.getTrendingInterviews);
 InterviewsRoutes.get('/:id', InterviewsController.interviewById);
 InterviewsRoutes.post('/', InterviewsController.createInterview);
 InterviewsRoutes.post('/:id/like', InterviewsController.likeInterview);

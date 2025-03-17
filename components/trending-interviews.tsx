@@ -1,111 +1,145 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ThumbsUp, MessageSquare, Calendar } from "lucide-react"
+import { ThumbsUp, MessageSquare, Calendar, Loader2, TrendingUp, Eye } from "lucide-react"
+import axios from "axios"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
 
-// Mock data for trending interviews
-const trendingInterviews = [
-  {
-    id: 1,
-    company: "Google",
-    role: "Software Engineer",
-    level: "Experienced",
-    date: "2 days ago",
-    likes: 124,
-    comments: 32,
-    author: {
-      name: "Alex Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "AJ",
-    },
-    tags: ["DSA", "System Design", "Behavioral"],
-  },
-  {
-    id: 2,
-    company: "Amazon",
-    role: "Data Scientist",
-    level: "Fresher",
-    date: "1 week ago",
-    likes: 98,
-    comments: 24,
-    author: {
-      name: "Sarah Miller",
-      avatar: "/placeholder.svg?height=40&width=40",
-      initials: "SM",
-    },
-    tags: ["ML", "SQL", "Probability"],
-  },
-  {
-    id: 3,
-    company: "Microsoft",
-    role: "Product Manager",
-    level: "Internship",
-    date: "2 weeks ago",
-    likes: 76,
-    comments: 18,
-    author: {
-      name: "Anonymous",
-      avatar: "",
-      initials: "A",
-    },
-    tags: ["Product Design", "Behavioral", "Case Study"],
-  },
-]
+type TrendingInterview = {
+  _id: string
+  company: string
+  role: string
+  level: string
+  createdAt: string
+  likes: number
+  comments: number
+  views: number
+  authorId: string
+  authorName: string
+  authorAvatar: string | null
+  tags: string[]
+  status: string
+  isAnonymous: boolean
+}
 
 export function TrendingInterviews() {
+  const [interviews, setInterviews] = useState<TrendingInterview[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTrendingInterviews = async () => {
+      try {
+        const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/interviews/trending`)
+        setInterviews(data.slice(0, 3)) // Only take 3 interviews
+      } catch (error) {
+        console.error('Error fetching trending interviews:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTrendingInterviews()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-6xl">
-      {trendingInterviews.map((interview) => (
-        <Card key={interview.id} className="overflow-hidden">
-          <CardHeader className="p-4 pb-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-xl">{interview.company}</CardTitle>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {interview.role} • {interview.level}
-                </div>
-              </div>
-              <Badge variant="outline" className="ml-2">
-                {interview.level}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            <div className="flex flex-wrap gap-2 mt-2">
-              {interview.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter className="p-4 pt-0 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={interview.author.avatar} alt={interview.author.name} />
-                <AvatarFallback>{interview.author.initials}</AvatarFallback>
-              </Avatar>
-              <div className="text-sm">
-                <p className="font-medium">{interview.author.name}</p>
-                <div className="flex items-center text-muted-foreground">
-                  <Calendar className="mr-1 h-3 w-3" />
-                  <span>{interview.date}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <div className="flex items-center">
-                <ThumbsUp className="mr-1 h-4 w-4" />
-                <span className="text-xs">{interview.likes}</span>
-              </div>
-              <div className="flex items-center">
-                <MessageSquare className="mr-1 h-4 w-4" />
-                <span className="text-xs">{interview.comments}</span>
-              </div>
-            </div>
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
+    <section className="py-12 px-4 md:px-6 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-primary" />
+            <h2 className="text-3xl font-bold tracking-tight text-gray-800">🔥 Trending Interviews</h2>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {interviews.map((interview) => (
+            <Link href={`/interviews/${interview._id}`} key={interview._id} className="group">
+              <Card className="h-full border border-gray-200 shadow-md hover:shadow-xl transition-all duration-200 rounded-xl overflow-hidden">
+                <CardHeader className="p-5 bg-gradient-to-br from-gray-50 to-gray-100">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl font-bold text-gray-900">{interview.company}</CardTitle>
+                      <div className="text-sm text-gray-600 mt-1">{interview.role}</div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "px-3 py-1 text-xs font-semibold capitalize",
+                        interview.level === "internship" && "bg-purple-50 text-purple-700 border-purple-300",
+                        interview.level === "fresher" && "bg-green-50 text-green-700 border-green-300",
+                        interview.level === "experienced" && "bg-blue-50 text-blue-700 border-blue-300"
+                      )}
+                    >
+                      {interview.level}
+                    </Badge>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-5">
+                  <div className="flex flex-wrap gap-2">
+                    {interview.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5 bg-secondary/40">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="p-5 flex items-center justify-between bg-gray-50 border-t">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-9 w-9 ring-2 ring-gray-300">
+                      <AvatarImage src={interview.authorAvatar || undefined} alt="Author" />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {interview.isAnonymous ? "A" : interview.authorName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-sm">
+                      <p className="font-medium text-gray-900">
+                        {interview.isAnonymous ? "Anonymous" : interview.authorName}
+                      </p>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        <time dateTime={interview.createdAt}>
+                          {new Date(interview.createdAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </time>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <ThumbsUp className="h-4 w-4" />
+                      <span className="text-xs font-medium">{interview.likes}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="text-xs font-medium">{interview.comments}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Eye className="h-4 w-4" />
+                      <span className="text-xs font-medium">{interview.views}</span>
+                    </div>
+                  </div>
+                </CardFooter>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
