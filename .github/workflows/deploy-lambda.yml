@@ -32,6 +32,9 @@ jobs:
           cd server  # Move to server folder
           zip -r ../function.zip .  # Zip everything inside ./server
           ls -lh ../function.zip  # Check zip file size
+          
+      - name: Debug AWS Credentials
+        run: aws sts get-caller-identity
 
       - name: Deploy to AWS Lambda
         run: |
