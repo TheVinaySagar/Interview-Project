@@ -3,6 +3,81 @@ import User from '../models/User.js'
 import { auth } from "../config/firebase.js"
 
 class InterviewsController {
+  static async searchInterviews(req, res) {
+    try {
+      const { query, limit = 7 } = req.query;
+
+      if (!query || query.length < 2) {
+        return res.json({ companies: [], roles: [] });
+      }
+
+      const searchRegex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+      const [companies, roles] = await Promise.all([
+        // Companies aggregation
+        Interview.aggregate([
+          {
+            $match: {
+              company: { $regex: searchRegex },
+              status: 'published'
+            }
+          },
+          {
+            $group: {
+              _id: '$company',
+              count: { $sum: 1 },
+              recentRoles: { $addToSet: '$role' }
+            }
+          },
+          { $sort: { count: -1 } },
+          { $limit: parseInt(limit) },
+          {
+            $project: {
+              _id: 0,
+              name: '$_id',
+              count: 1,
+              recentRoles: { $slice: ['$recentRoles', 3] }
+            }
+          }
+        ]),
+
+        // Roles aggregation
+        Interview.aggregate([
+          {
+            $match: {
+              role: { $regex: searchRegex },
+              status: 'published'
+            }
+          },
+          {
+            $group: {
+              _id: '$role',
+              count: { $sum: 1 },
+              companies: { $addToSet: '$company' }
+            }
+          },
+          { $sort: { count: -1 } },
+          { $limit: parseInt(limit) },
+          {
+            $project: {
+              _id: 0,
+              title: '$_id',
+              count: 1,
+              companies: { $slice: ['$companies', 3] }
+            }
+          }
+        ])
+      ]);
+
+      res.json({ companies, roles });
+    } catch (error) {
+      console.error('Search error:', error);
+      res.status(500).json({
+        message: 'Error performing search',
+        error: error.message
+      });
+    }
+  }
 
   static async getTrendingInterviews(req, res) {
     try {

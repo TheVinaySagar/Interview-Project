@@ -46,8 +46,6 @@ export function UserButton() {
       </div>
     )
   }
-
-  console.log("user", user.photoURL)
   const userInitials = user.displayName
     ? user.displayName.split(" ").map((n) => n[0]).join("")
     : user.email?.charAt(0).toUpperCase() || "U"

@@ -60,7 +60,7 @@ export default function InterviewDetailPage() {
             <div className="flex items-center space-x-4">
               <LikeButton
                 interviewId={interview._id}
-                initialLikes={interview.likes || 0} // ✅ Default to 0 if undefined
+                initialLikes={interview.likes || 0}
                 userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : false} // ✅ Ensure `likedBy` is an array
               />
 

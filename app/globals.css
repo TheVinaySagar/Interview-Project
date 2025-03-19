@@ -58,3 +58,25 @@
   }
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.search-loading {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+
+.custom-quill .ql-container {
+  border: none !important; /* Remove inner border */
+  min-height: 100px !important; /* Increase text area height */
+}
+
+.custom-quill .ql-editor {
+  min-height: 100px !important; /* Ensures text area expands */
+}
+
+.custom-quill .ql-toolbar {
+  border-bottom: 1px solid #ddd !important; /* Keep toolbar border */
+}
