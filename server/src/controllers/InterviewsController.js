@@ -214,10 +214,9 @@ class InterviewsController {
       const user = await User.findOne({ uid: interview.authorId }, { photoURL: 1 }).lean();
       const authorAvatar = user?.photoURL || "https://cdn.example.com/default-avatar.png";
 
-      // ✅ Add `authorAvatar` key in response
-      interview = { ...interview, authorAvatar };
 
-      // ✅ Increment view count
+      interview = { ...interview, authorAvatar };
+     
       await Interview.findByIdAndUpdate(id, { $inc: { views: 1 } });
 
       return res.status(200).json(interview);
@@ -245,42 +244,83 @@ class InterviewsController {
         return res.status(404).json({ message: "User not found" })
       }
 
-      const { company, role, level, questions, experience, tags, isAnonymous } = req.body
+      const { company, role, level, questions, experience, tags, isAnonymous, tips } = req.body
 
       // Validate required fields
       if (!company || !role || !level || !questions || !experience || !tags) {
-        return res.status(400).json({ message: "Missing required fields" })
+        return res.status(400).json({
+          message: "Missing required fields",
+          details: {
+            company: !company,
+            role: !role,
+            level: !level,
+            questions: !questions,
+            experience: !experience,
+            tags: !tags
+          }
+        })
       }
 
       // Ensure `questions` is correctly structured
       if (!Array.isArray(questions) || !questions.every(q => q.question && q.answer)) {
-        return res.status(400).json({ message: "Invalid questions format. Each question must have a 'question' and 'answer' field." })
+        return res.status(400).json({
+          message: "Invalid questions format. Each question must have a 'question' and 'answer' field.",
+          received: questions
+        })
       }
 
+      // Create new interview document
       const newInterview = new Interview({
         company,
         role,
         level,
-        questions: questions.map(q => ({ question: q.question, answer: q.answer })),
-        experience,
-        tags,
+        questions: questions.map(q => ({
+          question: q.question.trim(),
+          answer: q.answer.trim()
+        })),
+        experience: experience.trim(),
+        tags: tags.map(tag => tag.trim()),
+        tips: tips?.trim() || '', // Handle optional tips field
         isAnonymous,
         authorId: userId,
         authorName: isAnonymous ? "Anonymous" : user.displayName,
+        createdAt: new Date(),
+        likes: 0,
+        views: 0,
+        comments: 0,
+        likedBy: []
       })
 
-      await newInterview.save()
+      // Save the interview
+      const savedInterview = await newInterview.save()
 
-      return res.status(201).json(newInterview)
+      // Return success response with created interview
+      return res.status(201).json({
+        message: "Interview created successfully",
+        interview: savedInterview
+      })
+
     } catch (error) {
       console.error("Create interview error:", error)
 
-      // Improved error response
-      const errorMessage = error.message || "Failed to create interview"
-      return res.status(500).json({ message: errorMessage })
+      // Handle specific MongoDB validation errors
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({
+          message: "Validation failed",
+          errors: Object.keys(error.errors).reduce((acc, key) => {
+            acc[key] = error.errors[key].message;
+            return acc;
+          }, {})
+        })
+      }
+
+      // Handle other errors
+      return res.status(500).json({
+        message: "Failed to create interview",
+        error: error.message
+      })
     }
   }
-
   static async likeInterview(req, res) {
     try {
       const authHeader = req.headers.authorization;

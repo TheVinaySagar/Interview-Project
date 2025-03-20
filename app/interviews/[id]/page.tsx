@@ -14,6 +14,7 @@ import { InterviewComments } from "@/components/interview-comments";
 import ReactMarkdown from "react-markdown";
 import LikeButton from "@/components/LikeButton";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { FormattedContent } from "@/components/formatted-content";
 
 export default function InterviewDetailPage() {
   const { id } = useParams();
@@ -108,7 +109,10 @@ export default function InterviewDetailPage() {
 
           {/* ✅ Interview Experience Content */}
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown>{interview.experience}</ReactMarkdown>
+            <FormattedContent
+              content={interview.experience}
+              className="prose prose-slate dark:prose-invert max-w-none"
+            />
           </div>
 
           {/* ✅ Interview Questions Section */}
@@ -118,11 +122,30 @@ export default function InterviewDetailPage() {
               <Card key={i}>
                 <CardContent className="p-4">
                   <h3 className="font-bold">Q: {q.question}</h3>
-                  <p className="mt-2">A: {q.answer}</p>
+                  <div className="mt-2">
+                    <FormattedContent
+                      content={q.answer}
+                      className="prose-sm"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {interview.tips && interview.tips.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Interview Tips</h2>
+              <Card>
+                <CardContent className="p-4">
+                  <FormattedContent
+                    content={interview.tips}
+                    className="prose-sm"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <Separator />
 
@@ -156,7 +179,7 @@ export default function InterviewDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardContent className="p-4 space-y-4">
               <h3 className="font-bold text-lg">Similar Interviews</h3>
               <div className="space-y-2">
@@ -174,7 +197,7 @@ export default function InterviewDetailPage() {
                 </Link>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>
