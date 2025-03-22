@@ -8,6 +8,7 @@ import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { getAuth } from "firebase/auth"
+import { FormattedContent } from "@/components/formatted-content";
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -308,6 +309,7 @@ export default function EditInterview() {
                     {...field}
                   />
                 </FormControl>
+                <FormattedContent content={field.value || ''} />
                 <FormMessage />
               </FormItem>
             )}
@@ -368,6 +370,7 @@ export default function EditInterview() {
                           {...field}
                         />
                       </FormControl>
+                      <FormattedContent content={field.value || ''} />
                       <FormMessage />
                     </FormItem>
                   )}
@@ -446,6 +449,7 @@ export default function EditInterview() {
                     {...field}
                   />
                 </FormControl>
+                <FormattedContent content={field.value || ''} />
                 <FormMessage />
               </FormItem>
             )}

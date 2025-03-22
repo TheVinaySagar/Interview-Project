@@ -2,6 +2,13 @@ import Interview from '../models/Interview.js'
 import User from '../models/User.js'
 import { auth } from "../config/firebase.js"
 
+import Redis from 'ioredis';
+import JSONCache from 'redis-json';
+
+const redis = new Redis("rediss://default:AXbHAAIjcDFlYjQwZDJiYjg3ZDY0ZGE3OWQ3MzczNGFhNmQzMTIwOXAxMA@kind-anemone-30407.upstash.io:6379");
+
+const jsonCache = new JSONCache(redis)
+
 class InterviewsController {
   static async searchInterviews(req, res) {
     try {
@@ -142,7 +149,15 @@ class InterviewsController {
   static async getInterviews(req, res) {
     try {
       const { company, role, level, tags } = req.query;
+      const cacheKey = `interviews:${company || "all"}:${role || "all"}:${level || "all"}:${tags || "all"}`;
 
+      // 🔹 Check if data exists in cache
+      const cachedData = await jsonCache.get(cacheKey);
+      if (cachedData) {
+        return res.status(200).json(cachedData);
+      }
+
+      // 🔹 If not cached, fetch from database
       let filter = { status: "published" };
 
       if (company) filter.company = new RegExp(company, "i");
@@ -151,7 +166,7 @@ class InterviewsController {
       if (tags) filter.tags = { $in: tags.split(",") };
 
       let interviews = await Interview.find(filter)
-        .select("company role level tags authorId createdAt likes views authorName comments") // ✅ Fetch only required fields
+        .select("company role level tags authorId createdAt likes views authorName comments")
         .sort({ createdAt: -1 })
         .lean();
 
@@ -168,12 +183,17 @@ class InterviewsController {
         authorAvatar: userAvatarMap[interview.authorId]
       }));
 
+      // 🔹 Store result in cache with 10-minute expiration
+      await jsonCache.set(cacheKey, interviews);
+      await redis.expire(cacheKey, 600); // 600 seconds (10 minutes)
+
       res.status(200).json(interviews);
     } catch (error) {
       console.error("Error fetching interviews:", error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
+
 
   static async userInterviews(req, res) {
     try {
@@ -216,8 +236,13 @@ class InterviewsController {
 
 
       interview = { ...interview, authorAvatar };
-     
+
       await Interview.findByIdAndUpdate(id, { $inc: { views: 1 } });
+
+      // if (jsonCache.get('123') !== null)
+      //   await jsonCache.set('123', interview)
+
+      // client.get('123', "Vinay Sagar")
 
       return res.status(200).json(interview);
     } catch (error) {

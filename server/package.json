@@ -23,6 +23,7 @@
         "morgan": "^1.10.0",
         "npm": "^11.2.0",
         "react-hot-toast": "^2.5.2",
+        "redis-json": "^6.0.3",
         "serverless-http": "^3.2.0"
     },
     "devDependencies": {

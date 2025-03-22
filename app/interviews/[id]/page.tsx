@@ -11,7 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ThumbsUp, MessageSquare, Share2, Calendar, Building, Briefcase, Award } from "lucide-react";
 import { InterviewComments } from "@/components/interview-comments";
-import ReactMarkdown from "react-markdown";
 import LikeButton from "@/components/LikeButton";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FormattedContent } from "@/components/formatted-content";
