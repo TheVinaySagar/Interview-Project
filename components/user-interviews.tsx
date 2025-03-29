@@ -184,13 +184,15 @@ export function UserInterviews() {
                       <>
                         {interview.views || 0} views • {interview.likes || 0} likes • {interview.comments || 0} comments
                       </>
+                    ) : interview.status === "draft" ? (
+                      "On Draft"
                     ) : (
-                      "Not published yet"
+                      "Under Approval"
                     )}
                   </div>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/interviews/${interview._id}`}>
-                      {interview.status === "published" ? "View" : "Continue Editing"}
+                      {"View"}
                     </Link>
                   </Button>
                 </CardFooter>

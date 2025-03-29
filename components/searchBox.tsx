@@ -61,7 +61,7 @@ export function SearchBox({ className }: SearchBoxProps) {
   })
 
   // Use a very short debounce for API calls
-  const debouncedQuery = useDebounce(query, 150)
+  const debouncedQuery = useDebounce(query, 1050)
 
   // Ref to store the abort controller for cancelling previous requests
   const abortControllerRef = React.useRef<AbortController | null>(null)

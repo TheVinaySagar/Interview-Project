@@ -303,13 +303,14 @@ export default function EditInterview() {
               <FormItem>
                 <FormLabel>Interview Experience*</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Share your interview experience..."
-                    className="min-h-[200px]"
-                    {...field}
+                  <div
+                    contentEditable
+                    className="min-h-[200px] max-h-[300px] p-3 border rounded-md focus:outline-none overflow-y-auto"
+                    dangerouslySetInnerHTML={{ __html: field.value || '' }}
+                    onBlur={(e) => field.onChange(e.target.innerHTML)} // Save formatted content
+                    style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps properly
                   />
                 </FormControl>
-                <FormattedContent content={field.value || ''} />
                 <FormMessage />
               </FormItem>
             )}
@@ -364,13 +365,14 @@ export default function EditInterview() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Textarea
-                          placeholder="Enter your answer"
-                          className="min-h-[100px]"
-                          {...field}
+                        <div
+                          contentEditable
+                          className="min-h-[100px] max-h-[200px] p-3 border rounded-md focus:outline-none overflow-y-auto"
+                          dangerouslySetInnerHTML={{ __html: field.value || '' }}
+                          onBlur={(e) => field.onChange(e.target.innerHTML)} // Save formatted content
+                          style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps properly
                         />
                       </FormControl>
-                      <FormattedContent content={field.value || ''} />
                       <FormMessage />
                     </FormItem>
                   )}
@@ -443,17 +445,19 @@ export default function EditInterview() {
               <FormItem>
                 <FormLabel>Tips & Advice (Optional)</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Share any tips for other candidates..."
-                    className="min-h-[100px]"
-                    {...field}
+                  <div
+                    contentEditable
+                    className="min-h-[100px] max-h-[200px] p-3 border rounded-md focus:outline-none overflow-y-auto"
+                    dangerouslySetInnerHTML={{ __html: field.value || '' }}
+                    onBlur={(e) => field.onChange(e.target.innerHTML)} // Save formatted content
+                    style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps properly
                   />
                 </FormControl>
-                <FormattedContent content={field.value || ''} />
                 <FormMessage />
               </FormItem>
             )}
           />
+
 
           <FormField
             control={form.control}

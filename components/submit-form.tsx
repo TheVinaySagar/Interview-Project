@@ -210,13 +210,13 @@ export default function SubmitInterview() {
 
       toast.success(
         data.status === "published"
-          ? "Your interview experience has been published!"
+          ? "Your interview experience has been gone to approval!"
           : "Your interview has been saved as a draft"
       );
-
+      console.log(response)
       router.push(
-        data.status === "published"
-          ? `/interviews/${response.data._id}`
+        response.data.interview.status === "published"
+          ? `/interviews/${response.data.interview._id}`
           : "/profile"
       );
     } catch (error) {

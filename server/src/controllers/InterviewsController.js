@@ -152,10 +152,10 @@ class InterviewsController {
       const cacheKey = `interviews:${company || "all"}:${role || "all"}:${level || "all"}:${tags || "all"}`;
 
       // 🔹 Check if data exists in cache
-      const cachedData = await jsonCache.get(cacheKey);
-      if (cachedData) {
-        return res.status(200).json(cachedData);
-      }
+      // const cachedData = await jsonCache.get(cacheKey);
+      // if (cachedData) {
+      //   return res.status(200).json(cachedData);
+      // }
 
       // 🔹 If not cached, fetch from database
       let filter = { status: "published" };
@@ -184,8 +184,8 @@ class InterviewsController {
       }));
 
       // 🔹 Store result in cache with 10-minute expiration
-      await jsonCache.set(cacheKey, interviews);
-      await redis.expire(cacheKey, 600); // 600 seconds (10 minutes)
+      // await jsonCache.set(cacheKey, interviews);
+      // await redis.expire(cacheKey, 600); // 600 seconds (10 minutes)
 
       res.status(200).json(interviews);
     } catch (error) {
