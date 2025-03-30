@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ThumbsUp, Reply, Pencil, Trash, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import LikeButton from "@/components/LikeButton";
+
 
 // Types
 interface Author {
@@ -24,6 +26,7 @@ interface Comment {
   createdAt: string;
   likes: number;
   isAuthor?: boolean;
+  likedBy: string[];
   parentCommentId?: string | null;
 }
 
@@ -35,9 +38,18 @@ export function InterviewComments({ interviewId }: { interviewId: string }) {
   const [editContent, setEditContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const auth = getAuth();
-  const user = auth.currentUser;
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Fetch comments on component mount
   useEffect(() => {
@@ -208,45 +220,6 @@ export function InterviewComments({ interviewId }: { interviewId: string }) {
     }
   };
 
-  // Handle like functionality
-  const handleLikeComment = async (commentId: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "You must be logged in to like comments.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const response = await fetch(`${apiUrl}/comments/${commentId}/like`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to like comment: ${response.status}`);
-      }
-
-      // Update like count in the state
-      setComments(prev =>
-        prev.map(c => c._id === commentId ? { ...c, likes: c.likes + 1 } : c)
-      );
-    } catch (err) {
-      console.error("Error liking comment:", err);
-      toast({
-        title: "Error",
-        description: "Failed to like comment. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Format date string
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -321,7 +294,7 @@ export function InterviewComments({ interviewId }: { interviewId: string }) {
           )}
 
           <div className="flex items-center space-x-4 pt-1">
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="h-8 px-2"
@@ -330,7 +303,14 @@ export function InterviewComments({ interviewId }: { interviewId: string }) {
             >
               <ThumbsUp className="mr-1 h-4 w-4" />
               <span>{comment.likes || 0}</span>
-            </Button>
+            </Button> */}
+            <LikeButton
+              entityId={comment._id}
+              entityType={"comment"}
+              initialLikes={comment.likes || 0}
+              userLiked={user ? (Array.isArray(comment.likedBy) ? comment.likedBy.includes(user.uid) : false) : true} // ✅ Ensure `likedBy` is an array
+            />
+
 
             <Button
               variant="ghost"

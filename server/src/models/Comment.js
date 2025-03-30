@@ -53,7 +53,8 @@ const CommentSchema = new Schema({
   },
   likedBy: [{
     type: String,
-    ref: 'User'
+    ref: 'User',
+    default: []
   }],
   isEdited: {
     type: Boolean,

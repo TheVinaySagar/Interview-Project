@@ -38,6 +38,7 @@ export default function InterviewDetailPage() {
         setLoading(false);
       });
   }, [id]);
+
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -59,9 +60,10 @@ export default function InterviewDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <LikeButton
-                interviewId={interview._id}
+                entityId={interview._id}
+                entityType={"interview"}
                 initialLikes={interview.likes || 0}
-                userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : false} // ✅ Ensure `likedBy` is an array
+                userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : true} // ✅ Ensure `likedBy` is an array
               />
 
               <Button variant="ghost" size="icon" className="rounded-full">

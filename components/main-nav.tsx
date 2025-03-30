@@ -11,6 +11,7 @@ import { UserButton } from "@/components/user-button"
 import { MobileNav } from "@/components/mobile-nav"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { SearchBox } from "./searchBox";
 
 export function MainNav() {
   const pathname = usePathname()
@@ -47,12 +48,13 @@ export function MainNav() {
           </Link>
 
           <div className="hidden lg:flex relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search interviews..."
               className="w-64 pl-9 rounded-full bg-secondary/50 border-secondary focus-visible:ring-primary"
-            />
+            /> */}
+            <SearchBox />
           </div>
         </div>
 

@@ -165,16 +165,25 @@ class CommentsController {
       }
 
       // Check if the user has already liked this comment
-      if (comment.likedBy && comment.likedBy.includes(userId)) {
-        return res.status(400).json({ message: "You've already liked this comment" });
-      }
+      // if (comment.likedBy && comment.likedBy.includes(userId)) {
+      //   return res.status(400).json({ message: "You've already liked this comment" });
+      // }
 
       // Add the user to the likedBy array and increment the likes count
-      comment.likes += 1;
-      if (!comment.likedBy) {
-        comment.likedBy = [];
+      if (comment.likedBy.includes(userId)) {
+        comment.likes -= 1;
+        comment.likedBy = comment.likedBy.filter((uid) => uid !== userId);
       }
-      comment.likedBy.push(userId);
+      else {
+        comment.likes += 1;
+        comment.likedBy.push(userId)
+      }
+
+      // comment.likes += 1;
+      // if (!comment.likedBy) {
+      //   comment.likedBy = [];
+      // }
+      // comment.likedBy.push(userId);
 
       await comment.save();
 

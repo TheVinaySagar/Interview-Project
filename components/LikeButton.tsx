@@ -6,7 +6,15 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function LikeButton({ interviewId, initialLikes, userLiked }: { interviewId: string, initialLikes: number, userLiked: boolean }) {
+interface LikeButtonProps {
+  entityId: string;
+  entityType: "interview" | "comment" | "post";
+  initialLikes: number;
+  userLiked: boolean;
+}
+
+
+export default function LikeButton({ entityId, entityType, initialLikes, userLiked }: LikeButtonProps) {
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(userLiked);
   const [user, setUser] = useState<any>(null);
@@ -29,7 +37,7 @@ export default function LikeButton({ interviewId, initialLikes, userLiked }: { i
 
     try {
       const token = await user.getIdToken(); // ✅ Get Firebase token from logged-in user
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/interviews/${interviewId}/like`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${entityType}s/${entityId}/like`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
