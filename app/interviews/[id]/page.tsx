@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ThumbsUp, MessageSquare, Share2, Calendar, Building, Briefcase, Award } from "lucide-react";
+import { MessageSquare, Share2, Calendar } from "lucide-react";
 import { InterviewComments } from "@/components/interview-comments";
 import LikeButton from "@/components/LikeButton";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { FormattedContent } from "@/components/formatted-content";
-import Image from "next/image";
+import ShareButton from "@/components/sharebutton"
+
+
 
 
 export default function InterviewDetailPage() {
@@ -42,6 +44,8 @@ export default function InterviewDetailPage() {
       });
   }, [id]);
 
+
+
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -55,6 +59,10 @@ export default function InterviewDetailPage() {
   if (error) return <p className="text-center text-red-500">{error}</p>;
   if (!interview) return <p className="text-center py-10">No interview found.</p>;
 
+
+  const title = interview.company + " Interview Experience\n\n"
+  const text = interview.experience.replace(/<[^>]*>/g, "").slice(0, 200);
+  const url = window.location.href
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -87,9 +95,7 @@ export default function InterviewDetailPage() {
                 <MessageSquare className="h-5 w-5" />
               </Button>
               <span className="font-medium">{interview.comments}</span>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Share2 className="h-5 w-5" />
-              </Button>
+              <ShareButton title={title} text={text} url={url} />
             </div>
             <Button variant="outline" asChild>
               <Link href="/interviews">Back to Interviews</Link>
