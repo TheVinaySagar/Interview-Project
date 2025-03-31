@@ -108,7 +108,7 @@ export default function ProfilePage() {
           <Tabs defaultValue="interviews">
             <TabsList className="mb-6">
               <TabsTrigger value="interviews">My Interviews</TabsTrigger>
-              <TabsTrigger value="settings">Account Settings</TabsTrigger>
+              {/* <TabsTrigger value="settings">Account Settings</TabsTrigger> */}
             </TabsList>
             <TabsContent value="interviews">
               <UserInterviews />
