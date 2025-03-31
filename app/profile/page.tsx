@@ -12,6 +12,12 @@ import axios from 'axios'
 
 export default function ProfilePage() {
   const [user, setUser] = useState({ name: '', email: '', photoURL: '' });
+  const [stats, setStats] = useState({
+    interviewCount: 0,
+    totalLikes: 0,
+    totalComments: 0,
+    memberSince: '',
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -20,11 +26,21 @@ export default function ProfilePage() {
       return;
     }
 
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile-data`, {
+    // Fetch user profile and stats in parallel
+    const fetchProfile = axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile-data`, {
       headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(response => setUser(response.data))
-      .catch(error => console.error('Error fetching profile data:', error));
+    });
+
+    const fetchStats = axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    Promise.all([fetchProfile, fetchStats])
+      .then(([profileRes, statsRes]) => {
+        setUser(profileRes.data);
+        setStats(statsRes.data);
+      })
+      .catch(error => console.error('Error fetching data:', error));
   }, []);
 
   return (
@@ -67,19 +83,21 @@ export default function ProfilePage() {
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Interviews Shared</span>
-                <span className="font-medium">12</span>
+                <span className="font-medium">{stats.interviewCount}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Likes</span>
-                <span className="font-medium">248</span>
+                <span className="font-medium">{stats.totalLikes}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Comments</span>
-                <span className="font-medium">86</span>
+                <span className="font-medium">{stats.totalComments}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Member Since</span>
-                <span className="font-medium">Jan 2023</span>
+                <span className="font-medium">
+                  {new Date(stats.memberSince).toLocaleDateString("en-US", { year: "numeric", month: "short" })}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -92,16 +110,10 @@ export default function ProfilePage() {
               <TabsTrigger value="interviews">My Interviews</TabsTrigger>
               <TabsTrigger value="settings">Account Settings</TabsTrigger>
             </TabsList>
-            <TabsContent
-              value="interviews"
-              className="transition-opacity duration-300 ease-in-out opacity-100"
-            >
+            <TabsContent value="interviews">
               <UserInterviews />
             </TabsContent>
-            <TabsContent
-              value="settings"
-              className="transition-opacity duration-300 ease-in-out opacity-100"
-            >
+            <TabsContent value="settings">
               <UserSettings />
             </TabsContent>
           </Tabs>
