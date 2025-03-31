@@ -10,7 +10,7 @@ export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // ✅ Prevents Hydration Mismatch in Next.js
+  //  Prevents Hydration Mismatch in Next.js
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -28,7 +28,7 @@ export function ThemeToggle() {
           {resolvedTheme === "dark" ? (
             <Moon className="h-5 w-5 text-gray-600 dark:text-blue-300" />
           ) : (
-          <Sun className="h-5 w-5 text-gray-600" />
+            <Sun className="h-5 w-5 text-gray-600" />
           )}
           <span className="sr-only">Toggle theme</span>
         </Button>

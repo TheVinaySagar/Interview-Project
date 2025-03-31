@@ -213,7 +213,6 @@ export default function SubmitInterview() {
           ? "Your interview experience has been gone to approval!"
           : "Your interview has been saved as a draft"
       );
-      console.log(response)
       router.push(
         response.data.interview.status === "published"
           ? `/interviews/${response.data.interview._id}`

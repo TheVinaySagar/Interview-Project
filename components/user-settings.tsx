@@ -64,15 +64,11 @@ export function UserSettings() {
   function onProfileSubmit(data: ProfileFormValues) {
     // In a real app, this would update the user's profile
 
-    console.log("Form submitted!")
-    console.log("Profile data:", data)
     alert("Profile form submitted!")
   }
 
   function onNotificationsSubmit(data: NotificationsFormValues) {
     // In a real app, this would update the user's notification settings
-    console.log("Notifications form submitted!")
-    console.log("Notifications data:", data)
     alert("Notifications form submitted!")
   }
 

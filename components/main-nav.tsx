@@ -1,5 +1,4 @@
 "use client"
-import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -10,8 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { UserButton } from "@/components/user-button"
 import { MobileNav } from "@/components/mobile-nav"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { SearchBox } from "./searchBox";
+import { SearchBox } from "./searchBox"
 
 export function MainNav() {
   const pathname = usePathname()
@@ -33,36 +31,34 @@ export function MainNav() {
   ]
 
   return (
-    <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-xl shadow-sm">
+    <div className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md shadow-md">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Left Side: Logo + Search */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.png"
-              alt="Interview Experience Logo"
-              width={140}
-              height={36}
-              className="object-contain"
-              priority
-            />
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 pl-2">
+            <span className="text-2xl font-bold tracking-wide text-blue-800 dark:text-white">
+              PrepInsight
+            </span>
           </Link>
 
+          {/* Search Box (Visible on Large Screens) */}
           <div className="hidden lg:flex relative">
-            {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search interviews..."
-              className="w-64 pl-9 rounded-full bg-secondary/50 border-secondary focus-visible:ring-primary"
-            /> */}
             <SearchBox />
           </div>
+
+          {/* Search Icon for Mobile */}
+          <button className="lg:hidden p-2 text-muted-foreground hover:text-primary">
+            <Search className="h-5 w-5" />
+          </button>
         </div>
 
+        {/* Center: Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           {navItems.map((item) => {
             const isActive = item.href === "/"
               ? pathname === item.href
-              : pathname?.startsWith(item.href);
+              : pathname?.startsWith(item.href)
 
             return (
               <Link
@@ -71,35 +67,58 @@ export function MainNav() {
                 className={cn(
                   "flex items-center gap-2 px-2 py-1 rounded-md relative transition-colors",
                   isActive
-                    ? "text-primary after:absolute after:-bottom-[18px] after:left-0 after:h-0.5 after:w-full after:bg-primary"
+                    ? "text-primary after:absolute after:bottom-[-2px] after:left-0 after:h-0.5 after:w-full after:bg-primary"
                     : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                 )}
               >
                 <span className="hidden lg:inline">{item.icon}</span>
                 {item.label}
               </Link>
-            );
+            )
           })}
         </nav>
 
+        {/* Right Side: Theme Toggle + Auth Buttons */}
         <div className="flex items-center gap-2 md:gap-4">
           <ThemeToggle />
+
           {user ? (
             <UserButton />
           ) : (
-            <div className="hidden sm:flex">
-              <Link href="/login">
-                <Button size="sm" variant="outline" className="rounded-full mr-2">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm" className="rounded-full">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
+            <>
+              {/* Sign In / Sign Up (Visible on Larger Screens) */}
+              <div className="hidden sm:flex">
+                <Link href="/login">
+                  <Button size="sm" variant="outline" className="rounded-full mr-2">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button size="sm" className="rounded-full">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Sign In / Sign Up (Inside MobileNav for Mobile Users) */}
+              <div className="sm:hidden">
+                <MobileNav>
+                  <Link href="/login">
+                    <Button size="sm" variant="outline" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm" className="w-full">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </MobileNav>
+              </div>
+            </>
           )}
+
+          {/* Mobile Navigation */}
           <MobileNav />
         </div>
       </div>

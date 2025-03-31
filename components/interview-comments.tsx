@@ -308,7 +308,7 @@ export function InterviewComments({ interviewId }: { interviewId: string }) {
               entityId={comment._id}
               entityType={"comment"}
               initialLikes={comment.likes || 0}
-              userLiked={user ? (Array.isArray(comment.likedBy) ? comment.likedBy.includes(user.uid) : false) : true} // ✅ Ensure `likedBy` is an array
+              userLiked={user ? (Array.isArray(comment.likedBy) ? comment.likedBy.includes(user.uid) : false) : true} //  Ensure `likedBy` is an array
             />
 
 

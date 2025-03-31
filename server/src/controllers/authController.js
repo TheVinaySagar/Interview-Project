@@ -165,7 +165,7 @@ class authController {
         return res.status(400).json({ message: "Invalid credentials" });
       }
 
-      // ✅ Generate JWT Token
+      //  Generate JWT Token
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
 
       res.json({ message: "Signin successful", token, user });

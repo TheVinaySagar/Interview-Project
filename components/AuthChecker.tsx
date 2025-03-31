@@ -1,5 +1,4 @@
-"use client"; // ✅ Ensure this runs only on the client
-
+"use client";
 import useAuthCheck from "@/hooks/useAuthCheck";
 
 export default function AuthChecker() {

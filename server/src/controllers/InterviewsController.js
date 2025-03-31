@@ -224,13 +224,13 @@ class InterviewsController {
   static async interviewById(req, res) {
     try {
       const { id } = req.params;
-      let interview = await Interview.findById(id).lean(); // ✅ Convert to plain JS object
+      let interview = await Interview.findById(id).lean(); //  Convert to plain JS object
 
       if (!interview) {
         return res.status(404).json({ message: "Interview not found" });
       }
 
-      // ✅ Fetch user avatar using authorId
+      //  Fetch user avatar using authorId
       const user = await User.findOne({ uid: interview.authorId }, { photoURL: 1 }).lean();
       const authorAvatar = user?.photoURL || "https://cdn.example.com/default-avatar.png";
 

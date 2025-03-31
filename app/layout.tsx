@@ -30,6 +30,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <AuthChecker />
             <div className="flex min-h-screen flex-col">
+              {/* Static header that doesn't rerender */}
               <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center">
                   <MainNav />
@@ -37,9 +38,15 @@ export default function RootLayout({
                   </div>
                 </div>
               </header>
-              <AnimatedWrapper>
-                {children}
-              </AnimatedWrapper>
+
+              {/* Content area that animates during transitions */}
+              <div className="flex-1">
+                <AnimatedWrapper>
+                  {children}
+                </AnimatedWrapper>
+              </div>
+
+              {/* Static footer that doesn't rerender */}
               <Footer />
             </div>
             <Toaster
@@ -64,7 +71,6 @@ export default function RootLayout({
             />
           </ThemeProvider>
         </AuthProvider>
-
       </body>
     </html>
   )

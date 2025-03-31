@@ -1,80 +1,69 @@
 "use client"
 import * as React from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, Home, Briefcase, PenSquare, MessageSquare, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
-export function MobileNav() {
+export function MobileNav({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
   const pathname = usePathname()
+
+  const navItems = [
+    { href: "/", label: "Home" },
+    { href: "/interviews", label: "Interviews" },
+    { href: "/submit", label: "Submit" },
+    { href: "/chat", label: "AI Chat" },
+  ]
 
   return (
     <div className="md:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
+        {/* Mobile Menu Button */}
         <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden w-9 h-9 p-0"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
+          <Button variant="ghost" size="icon" className="w-9 h-9 p-0">
+            <Menu className="h-5 w-5" aria-label="Open Menu" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[280px] sm:w-[320px] p-6">
-          <SheetHeader className="border-b border-border/40 p-4">
-            <SheetTitle className="flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-                <Image src="/logo.png" alt="Interview Experience Logo" width={120} height={30} className="object-contain" />
-              </Link>
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="rounded-full h-8 w-8">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </SheetTitle>
-          </SheetHeader>
 
-          <nav className="flex flex-col gap-4">
-            <Link
-              href="/"
-              className="text-lg font-semibold hover:text-primary transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Home
+        {/* Sidebar Navigation */}
+        <SheetContent side="right" className="w-[280px] sm:w-[320px] p-6 flex flex-col">
+          {/* Header with Close Button */}
+          <div className="flex items-center justify-between border-b border-border/40 pb-4">
+            <Link href="/" className="text-lg font-semibold" onClick={() => setOpen(false)}>
+              PrepInsight
             </Link>
-            <Link
-              href="/interviews"
-              className="text-lg font-semibold hover:text-primary transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Interviews
-            </Link>
-            <Link
-              href="/submit"
-              className="text-lg font-semibold hover:text-primary transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Submit
-            </Link>
-            <Link
-              href="/chat"
-              className="text-lg font-semibold hover:text-primary transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              AI Chat
-            </Link>
+            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="rounded-full h-8 w-8">
+              <X className="h-4 w-4" aria-label="Close Menu" />
+            </Button>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-4 mt-4">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href)
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "text-lg font-medium transition-colors py-2 px-4 rounded-md",
+                    isActive ? "bg-primary text-white" : "hover:bg-secondary/50"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
 
-          <div className="mt-auto border-t border-border/40 p-4">
-            <div className="flex flex-col space-y-4">
-              <div className="text-xs text-muted-foreground">
-                © {new Date().getFullYear()} Interview Experience
-              </div>
-            </div>
+          {/* Footer */}
+          <div className="mt-auto border-t border-border/40 pt-4 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Interview Experience
           </div>
         </SheetContent>
       </Sheet>

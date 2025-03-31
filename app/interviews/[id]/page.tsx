@@ -23,7 +23,7 @@ export default function InterviewDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
-  // ✅ Fetch interview data
+  //  Fetch interview data
   useEffect(() => {
     if (!id) return;
 
@@ -56,14 +56,14 @@ export default function InterviewDetailPage() {
     <div className="container py-10">
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="space-y-6">
-          {/* ✅ Like, Comment, Share Buttons */}
+          {/*  Like, Comment, Share Buttons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <LikeButton
                 entityId={interview._id}
                 entityType={"interview"}
                 initialLikes={interview.likes || 0}
-                userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : true} // ✅ Ensure `likedBy` is an array
+                userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : true} //  Ensure `likedBy` is an array
               />
 
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -79,7 +79,7 @@ export default function InterviewDetailPage() {
             </Button>
           </div>
 
-          {/* ✅ Interview Title & Tags */}
+          {/*  Interview Title & Tags */}
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">{interview.company} Interview Experience</h1>
             <div className="flex flex-wrap gap-2">
@@ -91,7 +91,7 @@ export default function InterviewDetailPage() {
             </div>
           </div>
 
-          {/* ✅ Author Section */}
+          {/*  Author Section */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-10 w-10">
               <AvatarImage src={interview.authorAvatar} alt={interview.author?.name} />
@@ -108,7 +108,7 @@ export default function InterviewDetailPage() {
 
           <Separator />
 
-          {/* ✅ Interview Experience Content */}
+          {/*  Interview Experience Content */}
           <div className="prose prose-sm dark:prose-invert max-w-none">
             <FormattedContent
               content={interview.experience}
@@ -116,7 +116,7 @@ export default function InterviewDetailPage() {
             />
           </div>
 
-          {/* ✅ Interview Questions Section */}
+          {/*  Interview Questions Section */}
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Interview Questions</h2>
             {interview.questions.map((q: any, i: number) => (
@@ -150,11 +150,11 @@ export default function InterviewDetailPage() {
 
           <Separator />
 
-          {/* ✅ Comments Section */}
+          {/*  Comments Section */}
           <InterviewComments interviewId={interview._id} />
         </div>
 
-        {/* ✅ Right Sidebar (Details + Similar Interviews) */}
+        {/*  Right Sidebar (Details + Similar Interviews) */}
         <div className="space-y-6">
           <Card>
             <CardContent className="p-4 space-y-4">

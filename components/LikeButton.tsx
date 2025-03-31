@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // ✅ Redirect if not logged in
+import { useRouter } from "next/navigation"; //  Redirect if not logged in
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,12 +31,12 @@ export default function LikeButton({ entityId, entityType, initialLikes, userLik
 
   const handleLike = async () => {
     if (!user) {
-      router.push("/login"); // ✅ Redirect to login if not authenticated
+      router.push("/login"); //  Redirect to login if not authenticated
       return;
     }
 
     try {
-      const token = await user.getIdToken(); // ✅ Get Firebase token from logged-in user
+      const token = await user.getIdToken(); //  Get Firebase token from logged-in user
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${entityType}s/${entityId}/like`, {
         method: "POST",
         headers: {
