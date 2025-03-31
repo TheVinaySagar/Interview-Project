@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { SearchBox } from "@/components/searchBox"; // Updated import path
+import { SearchBox } from "@/components/searchBox";
 import { TrendingInterviews } from "@/components/trending-interviews";
 import { CompanyLogos } from "@/components/company-logos";
 
@@ -24,7 +24,7 @@ const staggerContainer = {
   },
 };
 
-export default function Page() {  // Changed from Home to Page for Next.js 13+ convention
+export default function Page() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Hero Section */}

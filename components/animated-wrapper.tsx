@@ -1,6 +1,38 @@
+// "use client"
+// import { usePathname } from "next/navigation"
+// import { AnimatePresence, motion } from "framer-motion"
+// import { useEffect, useState } from "react"
+
+// export function AnimatedWrapper({ children }: { children: React.ReactNode }) {
+//   const pathname = usePathname()
+//   const [isFirstRender, setIsFirstRender] = useState(true)
+
+//   useEffect(() => {
+//     // After first render, set isFirstRender to false
+//     setIsFirstRender(false)
+//   }, [])
+
+//   return (
+//     <AnimatePresence mode="sync">
+//       <motion.main
+//         key={pathname}
+//         // Skip animation on first render to avoid hydration issues
+//         // initial={isFirstRender ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         exit={{ opacity: 0, y: -10 }}
+//         transition={{ duration: 0.3, ease: "easeIn" }}
+//         className="flex-1"
+//       >
+//         {children}
+//       </motion.main>
+//     </AnimatePresence>
+//   )
+// }
+
+
 "use client"
 import { usePathname } from "next/navigation"
-import { AnimatePresence, motion } from "framer-motion"
+import { useTransition, animated, config } from "@react-spring/web"
 import { useEffect, useState } from "react"
 
 export function AnimatedWrapper({ children }: { children: React.ReactNode }) {
@@ -12,19 +44,26 @@ export function AnimatedWrapper({ children }: { children: React.ReactNode }) {
     setIsFirstRender(false)
   }, [])
 
+  const transitions = useTransition(pathname, {
+    from: isFirstRender ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 },
+    enter: { opacity: 1, y: 0 },
+    leave: { opacity: 0, y: -10 },
+    config: { duration: 300, easing: t => t }, // Similar to "easeIn"
+    exitBeforeEnter: true, // Similar to AnimatePresence mode="sync"
+  })
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.main
-        key={pathname}
-        // Skip animation on first render to avoid hydration issues
-        initial={isFirstRender ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
-        className="flex-1"
-      >
-        {children}
-      </motion.main>
-    </AnimatePresence>
+    <>
+      {transitions((style, item) => (
+        item === pathname && (
+          <animated.main
+            style={style}
+            className="flex-1"
+          >
+            {children}
+          </animated.main>
+        )
+      ))}
+    </>
   )
 }
