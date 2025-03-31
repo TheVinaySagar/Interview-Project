@@ -33,7 +33,7 @@ export default function Page() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Hero Section - Enhanced with background pattern and improved layout */}
-      <section className="relative w-full py-24 md:py-36 lg:py-44 overflow-hidden">
+      <section className="relative w-full py-24 md:py-36 lg:py-12 overflow-hidden">
         {/* Background pattern */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/30">
           <div className="absolute inset-0 opacity-5" style={{

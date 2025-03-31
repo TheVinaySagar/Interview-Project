@@ -173,7 +173,7 @@ export default function InterviewDetailPage() {
         </div>
 
         {/* Sidebar */}
-        <motion.div className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+        {/* <motion.div className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
           <Card>
             <CardContent className="p-4 space-y-4">
               <h3 className="font-bold text-lg">Interview Details</h3>
@@ -181,11 +181,12 @@ export default function InterviewDetailPage() {
                 <div className="flex items-center">
                   <Building className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>Company: {interview.company}</span>
+
                 </div>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </motion.div> */}
       </motion.div>
     </motion.div>
   );

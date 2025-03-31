@@ -13,9 +13,9 @@ import { AnimatedWrapper } from "@/components/animated-wrapper"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Interview Experience Platform",
+  title: "PrepInsight",
   description: "Share and explore interview experiences across companies and roles",
-  generator: 'v0.dev'
+  generator: ''
 }
 
 export default function RootLayout({
