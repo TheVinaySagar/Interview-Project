@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
 import axios from "axios";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -106,13 +107,13 @@ const formSchema = z.object({
   }),
   questions: z.array(
     z.object({
-      question: z.string().min(1, "Question is required"),
-      answer: z.string().refine((val) =>
-        val.replace(/<[^>]+>/g, '').trim().length >= 10,
+      question: z.string().min(1, "Question is required").optional().or(z.literal("")),
+      answer: z.string().optional().or(z.literal("")).refine(
+        (val) => !val || val.replace(/<[^>]+>/g, '').trim().length >= 10,
         "Please provide a substantial answer"
       ),
     })
-  ).min(1, "At least one question is required"),
+  ).optional(),
   experience: z.string().refine((val) =>
     val.replace(/<[^>]+>/g, '').trim().length >= 10,
     "Please share at least 10 characters of meaningful content"
@@ -152,7 +153,7 @@ export default function SubmitInterview() {
       company: "",
       role: "",
       level: "fresher",
-      questions: [{ question: "", answer: "" }],
+      questions: [],
       experience: "",
       tips: '',
       tags: [],
@@ -208,7 +209,7 @@ export default function SubmitInterview() {
 
   // Remove a question/answer pair
   const removeQuestion = (index: number) => {
-    const currentQuestions = form.getValues("questions");
+    const currentQuestions = form.getValues("questions") || [];
     if (currentQuestions.length > 1) {
       form.setValue(
         "questions",
@@ -223,7 +224,7 @@ export default function SubmitInterview() {
       toast.error("You must be logged in to submit an interview");
       return;
     }
-
+    console.log(data);
     setIsSubmitting(true);
     try {
       const token = await user.getIdToken();
@@ -417,7 +418,7 @@ export default function SubmitInterview() {
             {/* Interview Questions */}
             <motion.div variants={itemVariants} className="space-y-4">
               <div className="flex justify-between items-center">
-                <FormLabel className="text-base">Interview Questions & Answers*</FormLabel>
+                <FormLabel className="text-base">Interview Questions & Answers</FormLabel>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
                     type="button"
@@ -484,7 +485,7 @@ export default function SubmitInterview() {
                             <FormLabel>Answer</FormLabel>
                             <FormControl>
                               <RichTextEditor
-                                value={field.value}
+                                value={field.value ?? ''}
                                 onChange={field.onChange}
                                 placeholder="What was your answer or solution?"
                               />
@@ -621,22 +622,28 @@ export default function SubmitInterview() {
                 control={form.control}
                 name="isAnonymous"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
-                    <FormControl>
-                      <motion.div whileHover={{ scale: 1.05 }}>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </motion.div>
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Submit anonymously</FormLabel>
-                      <FormDescription>
-                        Your name will not be displayed with this interview experience.
-                      </FormDescription>
-                    </div>
-                  </FormItem>
+                  <Card className="p-4">
+                    <CardContent>
+                      <FormItem className="flex items-center space-x-4">
+                        <FormControl>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="h-5 w-5 border-gray-400 data-[state=checked]:bg-blue-500 transition-all"
+                              aria-label="Submit anonymously"
+                            />
+                          </motion.div>
+                        </FormControl>
+                        <div>
+                          <FormLabel className="text-base font-medium">Submit Anonymously</FormLabel>
+                          <FormDescription className="text-gray-500">
+                            Your name will not be displayed with this interview experience.
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    </CardContent>
+                  </Card>
                 )}
               />
 
@@ -644,29 +651,32 @@ export default function SubmitInterview() {
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Publish Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <motion.div whileHover={{ scale: 1.01 }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </motion.div>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="draft">Save as Draft</SelectItem>
-                        <SelectItem value="published">Publish Now</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Drafts are only visible to you. Published interviews are publicly visible.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                  <Card className="p-4">
+                    <CardContent>
+                      <FormItem>
+                        <FormLabel className="text-lg font-semibold">Publish Status</FormLabel>
+                        <FormControl>
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <div className="flex items-center justify-between bg-gray-100 p-3 rounded-lg shadow-sm">
+                              <span className="text-sm font-medium text-gray-700">
+                                {field.value === "published" ? "Published" : "Draft"}
+                              </span>
+                              <Switch
+                                checked={field.value === "published"}
+                                onCheckedChange={(checked) => field.onChange(checked ? "published" : "draft")}
+                                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-400 transition-all"
+                                aria-label="Toggle publish status"
+                              />
+                            </div>
+                          </motion.div>
+                        </FormControl>
+                        <FormDescription className="text-gray-500 mt-2">
+                          Drafts are only visible to you. Published interviews are publicly visible.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    </CardContent>
+                  </Card>
                 )}
               />
             </motion.div>

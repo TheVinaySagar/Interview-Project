@@ -16,16 +16,15 @@ type TrendingInterview = {
   company: string;
   role: string;
   level: string;
+  tags?: string[];
+  authorName: string;
+  authorAvatar?: string;
+  author?: { name: string; initials: string };
   createdAt: string;
   likes: number;
   comments: number;
   views: number;
-  authorId: string;
-  authorName: string;
-  authorAvatar: string | null;
-  tags: string[];
-  status: string;
-  isAnonymous: boolean;
+  experience?: string;
 };
 
 interface TrendingInterviewsProps {
@@ -94,9 +93,9 @@ export function TrendingInterviews({ className }: TrendingInterviewsProps) {
 
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-2">
-                    {interview.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5 bg-secondary/40 dark:bg-secondary/20">
-                        {tag}
+                    {interview.tags?.map((tags) => (
+                      <Badge key={tags} variant="secondary" className="text-xs px-2 py-0.5 bg-secondary/40 dark:bg-secondary/20">
+                        {tags}
                       </Badge>
                     ))}
                   </div>
@@ -104,15 +103,25 @@ export function TrendingInterviews({ className }: TrendingInterviewsProps) {
 
                 <CardFooter className="p-6 flex items-center justify-between bg-gray-50 dark:bg-gray-800 border-t dark:border-gray-700">
                   <div className="flex items-center space-x-3">
-                    <Avatar className="h-9 w-9 ring-2 ring-gray-300 dark:ring-gray-600">
-                      <AvatarImage src={interview.authorAvatar || undefined} alt="Author" />
-                      <AvatarFallback className="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
-                        {interview.isAnonymous ? "A" : interview.authorName.charAt(0)}
-                      </AvatarFallback>
+                    <Avatar className="h-8 w-8 shrink-0 ring-2 ring-background">
+                      {interview.authorName === "Anonymous" ? (
+                        // Show default anonymous avatar
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          <img src="/hacker.png" alt="Anonymous" className="h-8 w-8 rounded-full" />
+                        </AvatarFallback>
+                      ) : (
+                        <>
+                          <AvatarImage src={interview.authorAvatar} alt={interview.author?.name} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                            {interview.author?.initials || interview.authorName?.charAt(0) || "?"}
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
+
                     <div className="text-sm">
                       <p className="font-medium text-gray-900 dark:text-gray-100">
-                        {interview.isAnonymous ? "Anonymous" : interview.authorName}
+                        {interview.authorName}
                       </p>
                       <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                         <Calendar className="mr-1 h-3 w-3" />

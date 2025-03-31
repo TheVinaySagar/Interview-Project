@@ -16,8 +16,8 @@ const interviewSchema = new mongoose.Schema({
   },
   questions: [
     {
-      question: { type: String, required: true },
-      answer: { type: String, required: true },
+      question: { type: String, required: false },
+      answer: { type: String, required: false },
     }
   ],
   experience: {

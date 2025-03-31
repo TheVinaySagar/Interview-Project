@@ -110,7 +110,7 @@ export function Interviews() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center min-h-screen"
+      className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto px-4 flex-wrap items-center justify-center min-h-screen"
     >
       <AnimatePresence>
         {interviews.map((interview) => {
@@ -184,11 +184,20 @@ export function Interviews() {
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-3 min-w-0">
                         <Avatar className="h-8 w-8 shrink-0 ring-2 ring-background">
-                          <AvatarImage src={interview.authorAvatar} alt={interview.author?.name} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                            {interview.author?.initials || interview.authorName?.charAt(0) || "?"}
-                          </AvatarFallback>
+                          {interview.authorName === "Anonymous" ? (
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                              <img src="/hacker.png" alt="Anonymous" className="h-8 w-8 rounded-full" />
+                            </AvatarFallback>
+                          ) : (
+                            <>
+                              <AvatarImage src={interview.authorAvatar} alt={interview.author?.name} />
+                              <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                {interview.author?.initials || interview.authorName?.charAt(0) || "?"}
+                              </AvatarFallback>
+                            </>
+                          )}
                         </Avatar>
+
                         <div className="space-y-1 min-w-0">
                           <p className="text-sm font-medium leading-none truncate">{interview.authorName || "Unknown Author"}</p>
                           <div className="flex items-center text-xs text-muted-foreground">
