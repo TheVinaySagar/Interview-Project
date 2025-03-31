@@ -1,12 +1,15 @@
 "use client"
 
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Search, Star, Briefcase, TrendingUp } from "lucide-react";
+import { ArrowRight, ChevronRight, Star, Briefcase, TrendingUp, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SearchBox } from "@/components/searchBox";
 import { TrendingInterviews } from "@/components/trending-interviews";
 import { CompanyLogos } from "@/components/company-logos";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Enhanced animation variants
 const fadeInUp = {
@@ -29,7 +32,22 @@ const staggerContainer = {
   },
 };
 
+const defaultAvatar = "/default-avatar.png";
+interface UserPhoto {
+  photoURL: string;
+}
+
 export default function Page() {
+
+  const [userPhotos, setUserPhotos] = useState<UserPhoto[]>([]);
+
+  useEffect(() => {
+    axios.get<{ userPhotos: UserPhoto[] }>(`${process.env.NEXT_PUBLIC_API_URL}/users/photos`)
+      .then(response => setUserPhotos(response.data.userPhotos))
+      .catch(error => console.error("Error fetching user photos:", error));
+  }, []);
+
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       {/* Hero Section - Enhanced with background pattern and improved layout */}
@@ -89,11 +107,22 @@ export default function Page() {
 
             <motion.div variants={fadeInUp} className="pt-10 flex items-center gap-2 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-background bg-primary/10`} />
-                ))}
+                {userPhotos.length > 0 ? (
+                  userPhotos.map((user, i) => (
+                    <Avatar key={i} className="w-8 h-8 border-2 border-background">
+                      <AvatarImage src={user.photoURL} />
+                      <AvatarFallback>U</AvatarFallback>
+                    </Avatar>
+                  ))
+                ) : (
+                  [...Array(5)].map((_, i) => (
+                    <Avatar key={i} className="w-8 h-8 border-2 border-background">
+                      <AvatarFallback>U</AvatarFallback>
+                    </Avatar>
+                  ))
+                )}
               </div>
-              <span>Join <span className="font-medium text-foreground">10,000+</span> professionals who shared their stories</span>
+              <span>Join <span className="font-medium text-foreground">100+</span> professionals who shared their stories</span>
             </motion.div>
           </motion.div>
         </div>

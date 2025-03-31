@@ -136,6 +136,22 @@ class UserController {
       return res.status(500).json({ message: "Failed to fetch user stats" });
     }
   }
+
+  static async latestUserPhotos(req, res) {
+    try {
+      const userPhotos = await User.find(
+        { photoURL: { $ne: null, $ne: "" } }, // Only fetch users with valid photoURL
+        { photoURL: 1, _id: 0 } // Select only photoURL, exclude _id
+      )
+        .sort({ createdAt: -1 }) // Sort by latest
+        .limit(5); // Limit to 5 users
+
+      return res.status(200).json({ userPhotos });
+    } catch (error) {
+      console.error("Error fetching latest user photos:", error);
+      return res.status(500).json({ message: "Failed to fetch user photos" });
+    }
+  }
 }
 
 export default UserController;
