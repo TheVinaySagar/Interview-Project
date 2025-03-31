@@ -11,7 +11,7 @@ export default function InterviewsPage() {
             Browse and filter through interview experiences shared by the community
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[250px_1fr]">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[250px_1fr] min-h-screen">
           <InterviewFilters />
           <Interviews />
         </div>
@@ -19,4 +19,3 @@ export default function InterviewsPage() {
     </div>
   )
 }
-

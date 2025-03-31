@@ -29,7 +29,6 @@ export function UserInterviews() {
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
-  // Fetch interviews on component mount
   useEffect(() => {
     fetchInterviews();
   }, []);
@@ -37,37 +36,31 @@ export function UserInterviews() {
   const fetchInterviews = async () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
-      console.error('No token found');
       setError("No token found. Please log in again.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/interviews/user-interviews`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/interviews/user-interviews`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setInterviews(response.data);
     } catch (err) {
       setError('Failed to fetch interviews. Please try again.');
-      console.error('Error fetching interviews:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle edit button click
   const handleEdit = (interviewId: string) => {
     router.push(`/edit-interview/${interviewId}`);
   };
 
-  // Handle delete confirmation
   const handleDeleteRequest = (interviewId: string) => {
     setDeleteInterviewId(interviewId);
   };
 
-  // Handle actual deletion
   const handleDeleteConfirm = async () => {
     if (!deleteInterviewId) return;
 
@@ -79,38 +72,34 @@ export function UserInterviews() {
 
     setIsDeleting(true);
     try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}/interviews/${deleteInterviewId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/interviews/${deleteInterviewId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      // Update local state to remove deleted interview
       setInterviews(interviews.filter((interview: any) => interview._id !== deleteInterviewId));
       toast.success("Interview experience deleted successfully");
     } catch (err) {
-      console.error('Error deleting interview:', err);
       toast.error("Failed to delete interview. Please try again.");
     } finally {
       setIsDeleting(false);
-      setDeleteInterviewId(null); // Close the dialog
+      setDeleteInterviewId(null);
     }
   };
 
-  // Cancel delete action
   const handleDeleteCancel = () => {
     setDeleteInterviewId(null);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">My Interviews</h2>
-        <Button asChild>
+        <Button asChild className="transition-transform duration-200 ease-in-out hover:scale-105">
           <Link href="/submit">Share New Experience</Link>
         </Button>
       </div>
 
-      {/* Loading State */}
+      {/* Loading Spinner */}
       {loading && (
         <div className="flex justify-center items-center h-40">
           <span className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></span>
@@ -135,7 +124,7 @@ export function UserInterviews() {
               likes?: number;
               comments?: number;
             }) => (
-              <Card key={interview._id}>
+              <Card key={interview._id} className="transition-all duration-300 ease-in-out hover:shadow-lg">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                   <div>
                     <CardTitle className="text-xl">{interview.company}</CardTitle>
@@ -149,7 +138,7 @@ export function UserInterviews() {
                     )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="transition-transform duration-200 ease-in-out hover:scale-105">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Actions</span>
                         </Button>
@@ -190,7 +179,7 @@ export function UserInterviews() {
                       "Under Approval"
                     )}
                   </div>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild className="transition-transform duration-200 ease-in-out hover:scale-105">
                     <Link href={`/interviews/${interview._id}`}>
                       {"View"}
                     </Link>
@@ -199,14 +188,21 @@ export function UserInterviews() {
               </Card>
             ))
           ) : (
-            <p className="text-muted-foreground">No interviews found.</p>
+            <div className="flex flex-col items-center justify-center py-10">
+              <p className="text-muted-foreground text-lg font-medium">
+                No interviews found.
+              </p>
+              <p className="text-gray-500 text-sm text-center max-w-md mt-1">
+                Start by sharing your interview experience and help others on their journey!
+              </p>
+            </div>
           )}
         </div>
       )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteInterviewId !== null} onOpenChange={(open) => !open && handleDeleteCancel()}>
-        <AlertDialogContent>
+        <AlertDialogContent className="transition-all duration-300 ease-in-out">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to delete this interview?</AlertDialogTitle>
             <AlertDialogDescription>

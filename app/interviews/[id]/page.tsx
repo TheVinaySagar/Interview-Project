@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import { motion } from "framer-motion";  // Import motion from framer-motion
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ export default function InterviewDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
-  //  Fetch interview data
+  // Fetch interview data
   useEffect(() => {
     if (!id) return;
 
@@ -53,19 +54,33 @@ export default function InterviewDetailPage() {
   if (!interview) return <p className="text-center py-10">No interview found.</p>;
 
   return (
-    <div className="container py-10">
-      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="container py-10"
+    >
+      <motion.div
+        className="grid gap-6 lg:grid-cols-[1fr_300px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
         <div className="space-y-6">
-          {/*  Like, Comment, Share Buttons */}
-          <div className="flex items-center justify-between">
+          {/* Like, Comment, Share Buttons */}
+          <motion.div
+            className="flex items-center justify-between"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex items-center space-x-4">
               <LikeButton
                 entityId={interview._id}
                 entityType={"interview"}
                 initialLikes={interview.likes || 0}
-                userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : true} //  Ensure `likedBy` is an array
+                userLiked={user ? (Array.isArray(interview.likedBy) ? interview.likedBy.includes(user.uid) : false) : true}
               />
-
               <Button variant="ghost" size="icon" className="rounded-full">
                 <MessageSquare className="h-5 w-5" />
               </Button>
@@ -77,10 +92,15 @@ export default function InterviewDetailPage() {
             <Button variant="outline" asChild>
               <Link href="/interviews">Back to Interviews</Link>
             </Button>
-          </div>
+          </motion.div>
 
-          {/*  Interview Title & Tags */}
-          <div className="space-y-2">
+          {/* Interview Title & Tags */}
+          <motion.div
+            className="space-y-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <h1 className="text-3xl font-bold">{interview.company} Interview Experience</h1>
             <div className="flex flex-wrap gap-2">
               {interview.tags.map((tag: string) => (
@@ -89,10 +109,15 @@ export default function InterviewDetailPage() {
                 </Badge>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/*  Author Section */}
-          <div className="flex items-center space-x-4">
+          {/* Author Section */}
+          <motion.div
+            className="flex items-center space-x-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <Avatar className="h-10 w-10">
               <AvatarImage src={interview.authorAvatar} alt={interview.author?.name} />
               <AvatarFallback>{interview.author?.initials || "NA"}</AvatarFallback>
@@ -104,58 +129,51 @@ export default function InterviewDetailPage() {
                 <span>{new Date(interview.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           <Separator />
 
-          {/*  Interview Experience Content */}
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <FormattedContent
-              content={interview.experience}
-              className="prose prose-slate dark:prose-invert max-w-none"
-            />
-          </div>
+          {/* Interview Content */}
+          <motion.div
+            className="prose prose-sm dark:prose-invert max-w-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+          >
+            <FormattedContent content={interview.experience} />
+          </motion.div>
 
-          {/*  Interview Questions Section */}
-          <div className="space-y-4">
+          {/* Interview Questions Section */}
+          <motion.div className="space-y-4">
             <h2 className="text-2xl font-bold">Interview Questions</h2>
             {interview.questions.map((q: any, i: number) => (
-              <Card key={i}>
-                <CardContent className="p-4">
-                  <h3 className="font-bold">Q: {q.question}</h3>
-                  <div className="mt-2">
-                    <FormattedContent
-                      content={q.answer}
-                      className="prose-sm"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Card>
+                  <CardContent className="p-4">
+                    <h3 className="font-bold">Q: {q.question}</h3>
+                    <div className="mt-2">
+                      <FormattedContent content={q.answer} className="prose-sm" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
-          {interview.tips && interview.tips.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold">Interview Tips</h2>
-              <Card>
-                <CardContent className="p-4">
-                  <FormattedContent
-                    content={interview.tips}
-                    className="prose-sm"
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          <Separator />
-
-          {/*  Comments Section */}
-          <InterviewComments interviewId={interview._id} />
+          {/* Comments Section */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <Separator />
+            <InterviewComments interviewId={interview._id} />
+          </motion.div>
         </div>
 
-        {/*  Right Sidebar (Details + Similar Interviews) */}
-        <div className="space-y-6">
+        {/* Sidebar */}
+        <motion.div className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
           <Card>
             <CardContent className="p-4 space-y-4">
               <h3 className="font-bold text-lg">Interview Details</h3>
@@ -164,43 +182,11 @@ export default function InterviewDetailPage() {
                   <Building className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span>Company: {interview.company}</span>
                 </div>
-                <div className="flex items-center">
-                  <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>Role: {interview.role}</span>
-                </div>
-                <div className="flex items-center">
-                  <Award className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>Level: {interview.level}</span>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>Date: {new Date(interview.createdAt).toLocaleDateString()}</span>
-                </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* <Card>
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-bold text-lg">Similar Interviews</h3>
-              <div className="space-y-2">
-                <Link href="#" className="block hover:underline">
-                  Google - Product Manager
-                </Link>
-                <Link href="#" className="block hover:underline">
-                  Google - Data Scientist
-                </Link>
-                <Link href="#" className="block hover:underline">
-                  Microsoft - Software Engineer
-                </Link>
-                <Link href="#" className="block hover:underline">
-                  Amazon - Software Engineer
-                </Link>
-              </div>
-            </CardContent>
-          </Card> */}
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }

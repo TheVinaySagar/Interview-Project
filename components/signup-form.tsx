@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Github } from "lucide-react"
 import { toast } from "sonner"
+import { motion } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -62,32 +63,13 @@ export function SignupForm() {
     }
   }
 
-  async function handleGoogleSignIn() {
-    try {
-      setIsLoading(true)
-      await signInWithGoogle()
-      router.push("/")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with Google")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  async function handleGithubSignIn() {
-    try {
-      setIsLoading(true)
-      await signInWithGithub()
-      router.push("/")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with GitHub")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
-    <div className="grid gap-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="grid gap-6"
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -142,9 +124,15 @@ export function SignupForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <motion.button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            disabled={isLoading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             {isLoading ? "Creating account..." : "Sign Up"}
-          </Button>
+          </motion.button>
         </form>
       </Form>
       <div className="relative">
@@ -156,7 +144,13 @@ export function SignupForm() {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+        <motion.button
+          className="w-full border border-gray-300 p-2 rounded-lg flex items-center justify-center hover:bg-gray-100 transition"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => signInWithGoogle()}
+          disabled={isLoading}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
             <path
               fill="currentColor"
@@ -164,11 +158,17 @@ export function SignupForm() {
             />
           </svg>
           Google
-        </Button>
-        <Button variant="outline" className="w-full" onClick={handleGithubSignIn} disabled={isLoading}>
+        </motion.button>
+        <motion.button
+          className="w-full border border-gray-300 p-2 rounded-lg flex items-center justify-center hover:bg-gray-100 transition"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => signInWithGithub()}
+          disabled={isLoading}
+        >
           <Github className="mr-2 h-4 w-4" />
           GitHub
-        </Button>
+        </motion.button>
       </div>
       <div className="text-center text-sm">
         Already have an account?{" "}
@@ -176,7 +176,6 @@ export function SignupForm() {
           Sign in
         </Link>
       </div>
-    </div>
+    </motion.div>
   )
 }
-

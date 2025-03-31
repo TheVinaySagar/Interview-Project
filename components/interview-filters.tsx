@@ -277,7 +277,7 @@ export function InterviewFilters() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-[300px]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />

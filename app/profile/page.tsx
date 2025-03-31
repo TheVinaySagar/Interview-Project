@@ -13,7 +13,6 @@ import axios from 'axios'
 export default function ProfilePage() {
   const [user, setUser] = useState({ name: '', email: '', photoURL: '' });
 
-  // Fetch user data from backend using token
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -29,13 +28,13 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <div className="container py-10">
-      <div className="grid gap-8 md:grid-cols-2"> {/* Improved Grid */}
+    <div className="container py-10 animate-fade-in">
+      <div className="grid gap-8 md:grid-cols-2">
 
         {/* Profile & Stats Side */}
         <div className="space-y-2">
           {/* Profile Card */}
-          <Card className="flex-1 w-full">
+          <Card className="flex-1 w-full transition-all duration-300 ease-in-out hover:shadow-lg">
             <CardHeader className="flex flex-row items-center gap-4 space-y-0">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={user.photoURL} alt="User" />
@@ -50,7 +49,10 @@ export default function ProfilePage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" size="sm">
+              <Button
+                variant="outline"
+                className="w-full transition-transform duration-200 ease-in-out hover:scale-105"
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Profile
               </Button>
@@ -58,7 +60,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Stats Card */}
-          <Card className="flex-1 w-full">
+          <Card className="flex-1 w-full transition-all duration-300 ease-in-out hover:shadow-lg">
             <CardHeader>
               <CardTitle>Stats</CardTitle>
             </CardHeader>
@@ -90,10 +92,16 @@ export default function ProfilePage() {
               <TabsTrigger value="interviews">My Interviews</TabsTrigger>
               <TabsTrigger value="settings">Account Settings</TabsTrigger>
             </TabsList>
-            <TabsContent value="interviews">
+            <TabsContent
+              value="interviews"
+              className="transition-opacity duration-300 ease-in-out opacity-100"
+            >
               <UserInterviews />
             </TabsContent>
-            <TabsContent value="settings">
+            <TabsContent
+              value="settings"
+              className="transition-opacity duration-300 ease-in-out opacity-100"
+            >
               <UserSettings />
             </TabsContent>
           </Tabs>
