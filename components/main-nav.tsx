@@ -11,9 +11,18 @@ import { MobileNav } from "@/components/mobile-nav"
 import { Button } from "@/components/ui/button"
 import { SearchBox } from "./searchBox"
 
+// Define navigation items in one place that can be exported and reused
+export const navItems = [
+  { href: "/", label: "Home", icon: <Home className="h-4 w-4" /> },
+  { href: "/interviews", label: "Interviews", icon: <Briefcase className="h-4 w-4" /> },
+  { href: "/submit", label: "Submit", icon: <PenSquare className="h-4 w-4" /> },
+  { href: "/chat", label: "AI Chat", icon: <MessageSquare className="h-4 w-4" /> },
+]
+
 export function MainNav() {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
 
   useEffect(() => {
     const auth = getAuth()
@@ -22,13 +31,6 @@ export function MainNav() {
     })
     return () => unsubscribe()
   }, [])
-
-  const navItems = [
-    { href: "/", label: "Home", icon: <Home className="h-4 w-4" /> },
-    { href: "/interviews", label: "Interviews", icon: <Briefcase className="h-4 w-4" /> },
-    { href: "/submit", label: "Submit", icon: <PenSquare className="h-4 w-4" /> },
-    { href: "/chat", label: "AI Chat", icon: <MessageSquare className="h-4 w-4" /> },
-  ]
 
   return (
     <div className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md shadow-md">
@@ -48,10 +50,20 @@ export function MainNav() {
           </div>
 
           {/* Search Icon for Mobile */}
-          <button className="lg:hidden p-2 text-muted-foreground hover:text-primary">
+          <button
+            className="lg:hidden p-2 text-muted-foreground hover:text-primary"
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+          >
             <Search className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Mobile Search (Conditionally rendered) */}
+        {showMobileSearch && (
+          <div className="lg:hidden absolute top-16 left-0 right-0 bg-background p-4 border-b z-50">
+            <SearchBox />
+          </div>
+        )}
 
         {/* Center: Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -71,7 +83,7 @@ export function MainNav() {
                     : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
                 )}
               >
-                <span className="hidden lg:inline">{item.icon}</span>
+                {item.icon}
                 {item.label}
               </Link>
             )
@@ -99,27 +111,26 @@ export function MainNav() {
                   </Button>
                 </Link>
               </div>
-
-              {/* Sign In / Sign Up (Inside MobileNav for Mobile Users) */}
-              <div className="sm:hidden">
-                <MobileNav>
-                  <Link href="/login">
-                    <Button size="sm" variant="outline" className="w-full">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/signup">
-                    <Button size="sm" className="w-full">
-                      Sign Up
-                    </Button>
-                  </Link>
-                </MobileNav>
-              </div>
             </>
           )}
 
           {/* Mobile Navigation */}
-          <MobileNav />
+          <MobileNav>
+            {!user && (
+              <div className="flex flex-col gap-3 mt-4">
+                <Link href="/login">
+                  <Button size="sm" variant="outline" className="w-full">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button size="sm" className="w-full">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </MobileNav>
         </div>
       </div>
     </div>

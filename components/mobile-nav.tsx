@@ -6,17 +6,11 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { navItems } from "./main-nav" // Import navItems from main-nav
 
 export function MobileNav({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
   const pathname = usePathname()
-
-  const navItems = [
-    { href: "/", label: "Home" },
-    { href: "/interviews", label: "Interviews" },
-    { href: "/submit", label: "Submit" },
-    { href: "/chat", label: "AI Chat" },
-  ]
 
   return (
     <div className="md:hidden">
@@ -43,7 +37,9 @@ export function MobileNav({ children }: { children?: React.ReactNode }) {
           {/* Navigation Links */}
           <nav className="flex flex-col gap-4 mt-4">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href)
+              const isActive = item.href === "/"
+                ? pathname === item.href
+                : pathname?.startsWith(item.href)
 
               return (
                 <Link
@@ -51,19 +47,27 @@ export function MobileNav({ children }: { children?: React.ReactNode }) {
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "text-lg font-medium transition-colors py-2 px-4 rounded-md",
+                    "flex items-center gap-2 text-lg font-medium transition-colors py-2 px-4 rounded-md",
                     isActive ? "bg-primary text-white" : "hover:bg-secondary/50"
                   )}
                 >
+                  <span className="mr-2">{item.icon}</span>
                   {item.label}
                 </Link>
               )
             })}
           </nav>
 
+          {/* Auth Buttons (passed as children) */}
+          {children && (
+            <div className="mt-6 border-t border-border/40 pt-4">
+              {children}
+            </div>
+          )}
+
           {/* Footer */}
           <div className="mt-auto border-t border-border/40 pt-4 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Interview Experience
+            © {new Date().getFullYear()} PrepInsight
           </div>
         </SheetContent>
       </Sheet>
