@@ -63,6 +63,31 @@ export function SignupForm() {
     }
   }
 
+  async function handleGoogleSignUp() {
+      try {
+        setIsLoading(true);
+        await signInWithGoogle();
+        router.push("/");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to sign in with Google");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  
+    async function handleGithubSignUp() {
+      try {
+        setIsLoading(true);
+        await signInWithGithub();
+        router.push("/");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to sign in with GitHub");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -148,7 +173,7 @@ export function SignupForm() {
           className="w-full border border-gray-300 p-2 rounded-lg flex items-center justify-center hover:bg-gray-100 transition"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => signInWithGoogle()}
+          onClick={handleGoogleSignUp}
           disabled={isLoading}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
@@ -163,7 +188,7 @@ export function SignupForm() {
           className="w-full border border-gray-300 p-2 rounded-lg flex items-center justify-center hover:bg-gray-100 transition"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => signInWithGithub()}
+          onClick={handleGithubSignUp}
           disabled={isLoading}
         >
           <Github className="mr-2 h-4 w-4" />
