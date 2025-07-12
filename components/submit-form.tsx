@@ -2,15 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Switch } from "@/components/ui/switch";
 import axios from "axios";
 import { toast } from "sonner";
-import { z } from "zod";
+import { formSchema } from "@/components/types/formtypes"
+import { z } from "zod"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getAuth } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Minus, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import dynamic from "next/dynamic";
+import {popularTags} from "@/components/types/datatypes"
+
 import {
   Form,
   FormControl,
@@ -20,6 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
 import {
   Select,
   SelectContent,
@@ -27,11 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Minus, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,9 +48,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import dynamic from "next/dynamic";
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -91,51 +94,16 @@ const tagVariants = {
 
 // Dynamic import for RichTextEditor
 const RichTextEditor = dynamic(
-  () => import('@/components/rich-text-editor').then((mod) => mod.default),
+  () => import("@/components/rich-text-editor").then((mod) => mod.default),
   {
     ssr: false,
-    loading: () => <div className="h-[200px] bg-gray-100 animate-pulse rounded-md" />
+    loading: () => (
+      <div className="h-[200px] bg-gray-100 animate-pulse rounded-md" />
+    ),
   }
 );
 
-// Form schema
-const formSchema = z.object({
-  company: z.string().min(1, "Company name is required"),
-  role: z.string().min(1, "Job role is required"),
-  level: z.enum(["internship", "fresher", "experienced"], {
-    required_error: "Please select a level",
-  }),
-  questions: z.array(
-    z.object({
-      question: z.string().min(1, "Question is required").optional().or(z.literal("")),
-      answer: z.string().optional().or(z.literal("")).refine(
-        (val) => !val || val.replace(/<[^>]+>/g, '').trim().length >= 10,
-        "Please provide a substantial answer"
-      ),
-    })
-  ).optional(),
-  experience: z.string().refine((val) =>
-    val.replace(/<[^>]+>/g, '').trim().length >= 10,
-    "Please share at least 10 characters of meaningful content"
-  ),
-  tips: z.string().optional().transform(val => val || ''),
-  tags: z.array(z.string()).min(1, "At least one tag is required"),
-  isAnonymous: z.boolean().default(false),
-  status: z.enum(["draft", "published"], {
-    required_error: "Please select a status",
-  }),
-});
-
 type FormValues = z.infer<typeof formSchema>;
-
-// Popular interview tags
-const popularTags = [
-  "frontend", "backend", "fullstack", "devops", "mobile",
-  "react", "angular", "vue", "node", "express", "django", "spring",
-  "javascript", "typescript", "python", "java", "c#", "go", "rust",
-  "data-structures", "algorithms", "system-design", "behavioral",
-  "remote", "onsite", "leetcode", "take-home", "coding-challenge"
-];
 
 export default function SubmitInterview() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -155,7 +123,7 @@ export default function SubmitInterview() {
       level: "fresher",
       questions: [],
       experience: "",
-      tips: '',
+      tips: "",
       tags: [],
       isAnonymous: false,
       status: "draft",
@@ -174,7 +142,7 @@ export default function SubmitInterview() {
 
   // Handle tag input
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
         const newTags = [...selectedTags, tagInput.trim()];
@@ -196,7 +164,7 @@ export default function SubmitInterview() {
 
   // Remove a tag
   const removeTag = (tag: string) => {
-    const newTags = selectedTags.filter(t => t !== tag);
+    const newTags = selectedTags.filter((t) => t !== tag);
     setSelectedTags(newTags);
     form.setValue("tags", newTags);
   };
@@ -204,7 +172,10 @@ export default function SubmitInterview() {
   // Add a new question/answer pair
   const addQuestion = () => {
     const currentQuestions = form.getValues("questions") || [];
-    form.setValue("questions", [...currentQuestions, { question: "", answer: "" }]);
+    form.setValue("questions", [
+      ...currentQuestions,
+      { question: "", answer: "" },
+    ]);
   };
 
   // Remove a question/answer pair
@@ -224,23 +195,27 @@ export default function SubmitInterview() {
       toast.error("You must be logged in to submit an interview");
       return;
     }
-    console.log(data);
+    console.log("Submitting interview data:", data);
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     try {
       const token = await user.getIdToken();
 
       const payload = {
         ...data,
-        tips: data.tips?.trim() || '',
+        tips: data.tips?.trim() || "",
         authorId: user.uid,
-        authorName: data.isAnonymous ? "Anonymous" : user.displayName || user.email,
+        authorName: data.isAnonymous
+          ? "Anonymous"
+          : user.displayName || user.email,
       };
 
-      const cleanExperience = data.experience.replace(/<[^>]+>/g, ' ').trim();
+      const cleanExperience = data.experience.replace(/<[^>]+>/g, " ").trim();
       if (cleanExperience.length < 10) {
-        form.setError('experience', {
-          type: 'manual',
-          message: 'Please provide meaningful content'
+        form.setError("experience", {
+          type: "manual",
+          message: "Please provide meaningful content",
         });
         setIsSubmitting(false);
         return;
@@ -264,9 +239,9 @@ export default function SubmitInterview() {
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || 'Submission failed');
+        toast.error(error.response?.data?.message || "Submission failed");
       } else {
-        toast.error('An unexpected error occurred');
+        toast.error("An unexpected error occurred");
       }
       setIsSubmitting(false);
     }
@@ -300,9 +275,7 @@ export default function SubmitInterview() {
           <CardContent className="space-y-4">
             <p>You need to be logged in to share your interview experience.</p>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => router.push("/login")}>
-                Log In
-              </Button>
+              <Button onClick={() => router.push("/login")}>Log In</Button>
             </motion.div>
           </CardContent>
         </Card>
@@ -329,7 +302,10 @@ export default function SubmitInterview() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Company and Job Details */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <motion.div
+              variants={itemVariants}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
               <FormField
                 control={form.control}
                 name="company"
@@ -354,7 +330,10 @@ export default function SubmitInterview() {
                     <FormLabel>Job Role*</FormLabel>
                     <FormControl>
                       <motion.div whileFocus={{ scale: 1.01 }}>
-                        <Input placeholder="e.g. Software Engineer" {...field} />
+                        <Input
+                          placeholder="e.g. Software Engineer"
+                          {...field}
+                        />
                       </motion.div>
                     </FormControl>
                     <FormMessage />
@@ -381,7 +360,9 @@ export default function SubmitInterview() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="internship">Internship</SelectItem>
-                        <SelectItem value="fresher">Entry Level/Fresher</SelectItem>
+                        <SelectItem value="fresher">
+                          Entry Level/Fresher
+                        </SelectItem>
                         <SelectItem value="experienced">Experienced</SelectItem>
                       </SelectContent>
                     </Select>
@@ -401,13 +382,14 @@ export default function SubmitInterview() {
                     <FormLabel>Interview Experience*</FormLabel>
                     <FormControl>
                       <RichTextEditor
-                        value={field.value ?? ''}
+                        value={field.value ?? ""}
                         onChange={field.onChange}
                         placeholder="Share your overall interview experience, process, and timeline..."
                       />
                     </FormControl>
                     <FormDescription>
-                      Describe your interview journey, what to expect, and any insights that might help others.
+                      Describe your interview journey, what to expect, and any
+                      insights that might help others.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -418,8 +400,13 @@ export default function SubmitInterview() {
             {/* Interview Questions */}
             <motion.div variants={itemVariants} className="space-y-4">
               <div className="flex justify-between items-center">
-                <FormLabel className="text-base">Interview Questions & Answers</FormLabel>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <FormLabel className="text-base">
+                  Interview Questions & Answers
+                </FormLabel>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     type="button"
                     variant="outline"
@@ -446,7 +433,10 @@ export default function SubmitInterview() {
                       <div className="flex justify-between items-center">
                         <h4 className="font-medium">Question {index + 1}</h4>
                         {index > 0 && (
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
                             <Button
                               type="button"
                               variant="ghost"
@@ -469,7 +459,10 @@ export default function SubmitInterview() {
                             <FormLabel>Question</FormLabel>
                             <FormControl>
                               <motion.div whileFocus={{ scale: 1.01 }}>
-                                <Input placeholder="What was the interview question?" {...field} />
+                                <Input
+                                  placeholder="What was the interview question?"
+                                  {...field}
+                                />
                               </motion.div>
                             </FormControl>
                             <FormMessage />
@@ -485,7 +478,7 @@ export default function SubmitInterview() {
                             <FormLabel>Answer</FormLabel>
                             <FormControl>
                               <RichTextEditor
-                                value={field.value ?? ''}
+                                value={field.value ?? ""}
                                 onChange={field.onChange}
                                 placeholder="What was your answer or solution?"
                               />
@@ -512,13 +505,14 @@ export default function SubmitInterview() {
                       <RichTextEditor
                         value={field.value}
                         onChange={(value) => {
-                          field.onChange(value || '');
+                          field.onChange(value || "");
                         }}
                         placeholder="Any tips for others preparing for similar interviews?"
                       />
                     </FormControl>
                     <FormDescription>
-                      Share preparation resources, study tips, or any other advice.
+                      Share preparation resources, study tips, or any other
+                      advice.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -535,7 +529,7 @@ export default function SubmitInterview() {
 
               <div className="flex flex-wrap gap-2 mb-4">
                 <AnimatePresence>
-                  {selectedTags.map(tag => (
+                  {selectedTags.map((tag) => (
                     <motion.div
                       key={tag}
                       layout
@@ -572,12 +566,18 @@ export default function SubmitInterview() {
                     onKeyDown={handleTagInputKeyDown}
                   />
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
+                      if (
+                        tagInput.trim() &&
+                        !selectedTags.includes(tagInput.trim())
+                      ) {
                         addTag(tagInput.trim());
                         setTagInput("");
                       }
@@ -591,21 +591,24 @@ export default function SubmitInterview() {
               <div>
                 <h4 className="text-sm font-medium mb-2">Popular Tags</h4>
                 <div className="flex flex-wrap gap-2">
-                  {popularTags.filter(tag => !selectedTags.includes(tag)).slice(0, 10).map(tag => (
-                    <motion.div
-                      key={tag}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Badge
-                        variant="outline"
-                        className="cursor-pointer hover:bg-muted"
-                        onClick={() => addTag(tag)}
+                  {popularTags
+                    .filter((tag) => !selectedTags.includes(tag))
+                    .slice(0, 10)
+                    .map((tag) => (
+                      <motion.div
+                        key={tag}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        {tag}
-                      </Badge>
-                    </motion.div>
-                  ))}
+                        <Badge
+                          variant="outline"
+                          className="cursor-pointer hover:bg-muted"
+                          onClick={() => addTag(tag)}
+                        >
+                          {tag}
+                        </Badge>
+                      </motion.div>
+                    ))}
                 </div>
               </div>
 
@@ -626,7 +629,10 @@ export default function SubmitInterview() {
                     <CardContent>
                       <FormItem className="flex items-center space-x-4">
                         <FormControl>
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
@@ -636,9 +642,12 @@ export default function SubmitInterview() {
                           </motion.div>
                         </FormControl>
                         <div>
-                          <FormLabel className="text-base font-medium">Submit Anonymously</FormLabel>
+                          <FormLabel className="text-base font-medium">
+                            Submit Anonymously
+                          </FormLabel>
                           <FormDescription className="text-gray-500">
-                            Your name will not be displayed with this interview experience.
+                            Your name will not be displayed with this interview
+                            experience.
                           </FormDescription>
                         </div>
                       </FormItem>
@@ -646,40 +655,143 @@ export default function SubmitInterview() {
                   </Card>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <Card className="p-4">
-                    <CardContent>
-                      <FormItem>
-                        <FormLabel className="text-lg font-semibold">Publish Status</FormLabel>
-                        <FormControl>
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                            <div className="flex items-center justify-between bg-gray-100 p-3 rounded-lg shadow-sm">
-                              <span className="text-sm font-medium text-gray-700">
-                                {field.value === "published" ? "Published" : "Draft"}
-                              </span>
-                              <Switch
-                                checked={field.value === "published"}
-                                onCheckedChange={(checked) => field.onChange(checked ? "published" : "draft")}
-                                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-400 transition-all"
-                                aria-label="Toggle publish status"
-                              />
-                            </div>
-                          </motion.div>
-                        </FormControl>
-                        <FormDescription className="text-gray-500 mt-2">
-                          Drafts are only visible to you. Published interviews are publicly visible.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    </CardContent>
-                  </Card>
-                )}
-              />
             </motion.div>
+
+            {/* Publication Status */}
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <motion.div variants={itemVariants}>
+                  <FormItem className="space-y-4">
+                    <FormLabel className="text-lg font-semibold">
+                      Publication Status
+                    </FormLabel>
+                    <FormControl>
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Draft Option */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => field.onChange("draft")}
+                          className={`
+                relative cursor-pointer rounded-lg border-2 p-4 transition-all duration-200
+                ${
+                  field.value === "draft"
+                    ? "border-blue-500 bg-blue-50 shadow-md"
+                    : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                }
+              `}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div
+                              className={`
+                  h-4 w-4 rounded-full border-2 transition-all
+                  ${
+                    field.value === "draft"
+                      ? "border-blue-500 bg-blue-500"
+                      : "border-gray-300"
+                  }
+                `}
+                            >
+                              {field.value === "draft" && (
+                                <div className="h-full w-full rounded-full bg-white scale-50" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">
+                                  Save as Draft
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  Private
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Only visible to you. You can edit and publish
+                                later.
+                              </p>
+                            </div>
+                          </div>
+                          {field.value === "draft" && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center"
+                            >
+                              <div className="h-2 w-2 rounded-full bg-white" />
+                            </motion.div>
+                          )}
+                        </motion.div>
+
+                        {/* Published Option */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => field.onChange("published")}
+                          className={`
+                relative cursor-pointer rounded-lg border-2 p-4 transition-all duration-200
+                ${
+                  field.value === "published"
+                    ? "border-green-500 bg-green-50 shadow-md"
+                    : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                }
+              `}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div
+                              className={`
+                  h-4 w-4 rounded-full border-2 transition-all
+                  ${
+                    field.value === "published"
+                      ? "border-green-500 bg-green-500"
+                      : "border-gray-300"
+                  }
+                `}
+                            >
+                              {field.value === "published" && (
+                                <div className="h-full w-full rounded-full bg-white scale-50" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">
+                                  Publish Now
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs border-green-500 text-green-700"
+                                >
+                                  Public
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Share with the community. Subject to review.
+                              </p>
+                            </div>
+                          </div>
+                          {field.value === "published" && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-green-500 flex items-center justify-center"
+                            >
+                              <div className="h-2 w-2 rounded-full bg-white" />
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      </div>
+                    </FormControl>
+                    <FormDescription className="text-gray-600">
+                      {field.value === "draft"
+                        ? "Your interview will be saved privately and you can publish it later from your profile."
+                        : "Your interview will be shared publicly after a quick review process."}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                </motion.div>
+              )}
+            />
 
             {/* Submit Buttons */}
             <motion.div
@@ -688,8 +800,15 @@ export default function SubmitInterview() {
             >
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                    <Button type="button" variant="outline" disabled={isSubmitting}>
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isSubmitting}
+                    >
                       Cancel
                     </Button>
                   </motion.div>
@@ -698,7 +817,8 @@ export default function SubmitInterview() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Discard changes?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      You have unsaved changes. Are you sure you want to discard them?
+                      You have unsaved changes. Are you sure you want to discard
+                      them?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

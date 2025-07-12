@@ -1,15 +1,20 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import axios from "axios"
-import { toast } from "sonner"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { getAuth } from "firebase/auth"
-import { FormattedContent } from "@/components/formatted-content";
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
+import axios from "axios";
+import { toast } from "sonner";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { getAuth } from "firebase/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Minus, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { popularTags } from "@/components/types/datatypes";
+import { formSchema } from "@/components/types/formtypes";
+
 import {
   Form,
   FormControl,
@@ -18,20 +23,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Minus, Loader2 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/select";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,39 +51,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
-// Form schema based on Interview model
-const formSchema = z.object({
-  company: z.string().min(1, "Company name is required"),
-  role: z.string().min(1, "Job role is required"),
-  level: z.enum(["internship", "fresher", "experienced"], {
-    required_error: "Please select a level",
-  }),
-  questions: z.array(
-    z.object({
-      question: z.string().min(1, "Question is required"),
-      answer: z.string().min(1, "Answer is required"),
-    })
-  ).min(1, "At least one question is required"),
-  experience: z.string().min(10, "Please share your interview experience"),
-  tips: z.string().optional(),
-  tags: z.array(z.string()).min(1, "At least one tag is required"),
-  isAnonymous: z.boolean().default(false),
-  status: z.enum(["draft", "published"], {
-    required_error: "Please select a status",
-  }),
-});
 
 type FormValues = z.infer<typeof formSchema>;
-
-// Popular tags for suggestions
-const popularTags = [
-  "frontend", "backend", "fullstack", "devops",
-  "react", "node", "python", "java",
-  "data-structures", "algorithms", "system-design",
-  "remote", "onsite", "leetcode", "behavioral"
-];
 
 export default function EditInterview() {
   const params = useParams();
@@ -87,7 +67,7 @@ export default function EditInterview() {
   const [error, setError] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-
+  const preStatus = useRef<string>("");
   // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -123,13 +103,17 @@ export default function EditInterview() {
         );
 
         const data = response.data;
+        preStatus.current = data.status;
         setSelectedTags(data.tags || []);
 
         form.reset({
           company: data.company,
           role: data.role,
           level: data.level,
-          questions: data.questions.length > 0 ? data.questions : [{ question: "", answer: "" }],
+          questions:
+            data.questions.length > 0
+              ? data.questions
+              : [{ question: "", answer: "" }],
           experience: data.experience,
           tips: data.tips || "",
           tags: data.tags,
@@ -157,7 +141,6 @@ export default function EditInterview() {
       toast.error("Please sign in to continue");
       return;
     }
-
     setIsSubmitting(true);
 
     try {
@@ -167,7 +150,9 @@ export default function EditInterview() {
         {
           ...data,
           authorId: auth.currentUser.uid,
-          authorName: data.isAnonymous ? "Anonymous" : auth.currentUser.displayName,
+          authorName: data.isAnonymous
+            ? "Anonymous"
+            : auth.currentUser.displayName,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -184,7 +169,7 @@ export default function EditInterview() {
 
   // Handle tag input
   const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const tag = tagInput.trim();
 
@@ -199,15 +184,23 @@ export default function EditInterview() {
   };
 
   // Add/remove questions
-  const handleAddQuestion = () => {
-    const current = form.getValues("questions");
-    form.setValue("questions", [...current, { question: "", answer: "" }]);
+  // Add a new question/answer pair
+  const addQuestion = () => {
+    const currentQuestions = form.getValues("questions") || [];
+    form.setValue("questions", [
+      ...currentQuestions,
+      { question: "", answer: "" },
+    ]);
   };
 
-  const handleRemoveQuestion = (index: number) => {
-    const current = form.getValues("questions");
-    if (current.length > 1) {
-      form.setValue("questions", current.filter((_, i) => i !== index));
+  // Remove a question/answer pair
+  const removeQuestion = (index: number) => {
+    const currentQuestions = form.getValues("questions") || [];
+    if (currentQuestions.length > 1) {
+      form.setValue(
+        "questions",
+        currentQuestions.filter((_, i) => i !== index)
+      );
     }
   };
 
@@ -306,7 +299,7 @@ export default function EditInterview() {
                   <div
                     contentEditable
                     className="min-h-[200px] max-h-[300px] p-3 border rounded-md focus:outline-none overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: field.value || '' }}
+                    dangerouslySetInnerHTML={{ __html: field.value || "" }}
                     onBlur={(e) => field.onChange(e.target.innerHTML)} // Save formatted content
                     style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps properly
                   />
@@ -323,7 +316,7 @@ export default function EditInterview() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={handleAddQuestion}
+                onClick={addQuestion}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Question
@@ -339,7 +332,7 @@ export default function EditInterview() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleRemoveQuestion(index)}
+                      onClick={() => removeQuestion(index)}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -368,7 +361,9 @@ export default function EditInterview() {
                         <div
                           contentEditable
                           className="min-h-[100px] max-h-[200px] p-3 border rounded-md focus:outline-none overflow-y-auto"
-                          dangerouslySetInnerHTML={{ __html: field.value || '' }}
+                          dangerouslySetInnerHTML={{
+                            __html: field.value || "",
+                          }}
                           onBlur={(e) => field.onChange(e.target.innerHTML)} // Save formatted content
                           style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps properly
                         />
@@ -409,8 +404,11 @@ export default function EditInterview() {
                     type="button"
                     className="ml-2 hover:text-destructive"
                     onClick={() => {
-                      setSelectedTags(tags => tags.filter(t => t !== tag));
-                      form.setValue("tags", selectedTags.filter(t => t !== tag));
+                      setSelectedTags((tags) => tags.filter((t) => t !== tag));
+                      form.setValue(
+                        "tags",
+                        selectedTags.filter((t) => t !== tag)
+                      );
                     }}
                   >
                     ×
@@ -427,7 +425,7 @@ export default function EditInterview() {
                   className="cursor-pointer"
                   onClick={() => {
                     if (!selectedTags.includes(tag)) {
-                      setSelectedTags(tags => [...tags, tag]);
+                      setSelectedTags((tags) => [...tags, tag]);
                       form.setValue("tags", [...selectedTags, tag]);
                     }
                   }}
@@ -448,7 +446,7 @@ export default function EditInterview() {
                   <div
                     contentEditable
                     className="min-h-[100px] max-h-[200px] p-3 border rounded-md focus:outline-none overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: field.value || '' }}
+                    dangerouslySetInnerHTML={{ __html: field.value || "" }}
                     onBlur={(e) => field.onChange(e.target.innerHTML)} // Save formatted content
                     style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps properly
                   />
@@ -458,47 +456,127 @@ export default function EditInterview() {
             )}
           />
 
-
-          <FormField
-            control={form.control}
-            name="isAnonymous"
-            render={({ field }) => (
-              <FormItem className="flex items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Post Anonymously</FormLabel>
-                  <FormDescription>
-                    Hide your identity when sharing this interview
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="status"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="draft">Save as Draft</SelectItem>
-                    <SelectItem value="published">Publish</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Drafts are only visible to you
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium">
+                  Publication Status
+                </FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    {/* Draft Option - Only show if current status allows it */}
+                    {preStatus.current !== "pending" &&
+                      preStatus.current !== "published" && (
+                        <label
+                          className={`
+                flex items-center p-3 rounded-lg border cursor-pointer transition-colors
+                ${
+                  field.value === "draft"
+                    ? "border-blue-200 bg-blue-50"
+                    : "border-gray-200 hover:bg-gray-50"
+                }
+              `}
+                        >
+                          <input
+                            type="radio"
+                            name="status"
+                            value="draft"
+                            checked={field.value === "draft"}
+                            onChange={() => field.onChange("draft")}
+                            className="sr-only"
+                          />
+                          <div
+                            className={`
+                w-4 h-4 rounded-full border-2 mr-3
+                ${
+                  field.value === "draft"
+                    ? "border-blue-500 bg-blue-500"
+                    : "border-gray-300"
+                }
+              `}
+                          >
+                            {field.value === "draft" && (
+                              <div className="w-full h-full rounded-full bg-white scale-50" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">
+                                Save as Draft
+                              </span>
+                              <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+                                Private
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-0.5">
+                              Keep private and edit later
+                            </p>
+                          </div>
+                        </label>
+                      )}
+
+                    {/* Publish Option */}
+                    <label
+                      className={`
+              flex items-center p-3 rounded-lg border cursor-pointer transition-colors
+              ${
+                field.value === "pending"
+                  ? "border-green-200 bg-green-50"
+                  : "border-gray-200 hover:bg-gray-50"
+              }
+            `}
+                    >
+                      <input
+                        type="radio"
+                        name="status"
+                        value="pending"
+                        checked={field.value === "pending"}
+                        onChange={() => field.onChange("pending")}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`
+              w-4 h-4 rounded-full border-2 mr-3
+              ${
+                field.value === "pending"
+                  ? "border-green-500 bg-green-500"
+                  : "border-gray-300"
+              }
+            `}
+                      >
+                        {field.value === "pending" && (
+                          <div className="w-full h-full rounded-full bg-white scale-50" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">
+                            {preStatus.current === "published"
+                              ? "Update Published"
+                              : "Publish Interview"}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">
+                            {preStatus.current === "published"
+                              ? "Update"
+                              : "Public"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-0.5">
+                          {preStatus.current === "published"
+                            ? "Submit changes for review"
+                            : "Share with community after review"}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </FormControl>
+
+                <FormDescription className="text-sm text-gray-600">
+                  {field.value === "draft"
+                    ? "Saved privately - you can edit anytime"
+                    : "Will be reviewed before publishing"}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -521,9 +599,7 @@ export default function EditInterview() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Continue Editing</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => router.push("/profile")}
-                  >
+                  <AlertDialogAction onClick={() => router.push("/profile")}>
                     Discard Changes
                   </AlertDialogAction>
                 </AlertDialogFooter>
